@@ -1,0 +1,61 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  LoginRequest:
+    properties:
+      login:
+        type: string
+        x-go-name: Login
+      password:
+        type: string
+        x-go-name: Password
+    type: object
+    x-go-package: codestep/security
+  LoginResponse:
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+      token:
+        type: string
+        x-go-name: Token
+    type: object
+    x-go-package: codestep/security
+host: localhost
+info:
+  description: Documentation of codestep JSON API.
+  title: classification codestep
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      description: Authenticate user
+      operationId: idOfLoginEdnpoint
+      parameters:
+      - description: Login and password
+        in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/LoginRequest'
+      responses:
+        "200":
+          $ref: '#/responses/loginResponse'
+      tags:
+      - login-tag
+produces:
+- application/json
+responses:
+  loginResponse:
+    description: User authentication success
+    schema:
+      $ref: '#/definitions/LoginResponse'
+schemes:
+- http
+securityDefinitions:
+  basic:
+    type: basic
+swagger: "2.0"
