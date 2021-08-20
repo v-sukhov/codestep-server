@@ -38,14 +38,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Login
-	mux.HandleFunc("/login", security.Login)
+	mux.HandleFunc("/api/login", security.Login)
 
 	// protected multiplexer
 
 	muxProtected := http.NewServeMux()
-	muxProtected.HandleFunc("/protected/logout", security.Logout)
+	muxProtected.HandleFunc("/api/protected/logout", security.Logout)
 
-	mux.Handle("/protected/", security.ProtectHandler(muxProtected))
+	mux.Handle("/api/protected/", security.CorsHandler(security.ProtectHandler(muxProtected)))
 
 	server := &http.Server{
 		Addr:    serverAddr + ":" + serverPort,
