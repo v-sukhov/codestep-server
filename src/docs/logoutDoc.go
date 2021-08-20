@@ -4,7 +4,7 @@ import (
 	security "codestep/security"
 )
 
-// swagger:route POST /logout logout-tag idOfLogoutEdnpoint
+// swagger:route POST /api/protectes/logout logout-tag idOfLogoutEdnpoint
 // Logout user
 // responses:
 //   200: logoutResponse
