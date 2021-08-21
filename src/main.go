@@ -45,11 +45,11 @@ func main() {
 	muxProtected := http.NewServeMux()
 	muxProtected.HandleFunc("/api/protected/logout", security.Logout)
 
-	mux.Handle("/api/protected/", security.CorsHandler(security.ProtectHandler(muxProtected)))
+	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 
 	server := &http.Server{
 		Addr:    serverAddr + ":" + serverPort,
-		Handler: mux,
+		Handler: CorsHandler(mux),
 	}
 
 	log.Fatal(server.ListenAndServeTLS(sslCertificateFilePath, sslPrivateKeyFilePath))
