@@ -40,6 +40,11 @@ func main() {
 	// Login
 	mux.HandleFunc("/api/login", security.Login)
 
+	// Registration
+	mux.HandleFunc("/api/register", security.Register)
+	mux.HandleFunc("/api/validateregistercode", security.ValidateRegisterCode)
+	mux.HandleFunc("/api/resumeregister", security.ResumeRegister)
+
 	// protected multiplexer
 
 	muxProtected := http.NewServeMux()

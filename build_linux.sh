@@ -1,4 +1,4 @@
 cd ./src
-go build -o ..\build\codestep-server.exe
+go build -o ../build/codestep-server.exe
 cd ..
 

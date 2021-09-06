@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"log"
+	"strings"
 )
 
 type UserInfo struct {
@@ -28,4 +29,68 @@ func AuthenticateUser(login string, password string) (UserInfo, bool) {
 	}
 
 	return userInfo, ok
+}
+
+func FindUserByEmail(email string) (UserInfo, bool) {
+	userInfo := UserInfo{}
+	ok := true
+	err := db.QueryRow("SELECT user_id, login, display_name, user_type FROM t_user WHERE LOWER(email) = $1 ",
+		strings.ToLower(email)).
+		Scan(&userInfo.UserId, &userInfo.UserLogin, &userInfo.DisplayName, &userInfo.UserType)
+
+	if err != nil {
+		ok = false
+		if err != sql.ErrNoRows {
+			log.Fatal(err)
+		}
+	} else {
+		ok = true
+	}
+
+	return userInfo, ok
+}
+
+func FindUserByLogin(login string) (UserInfo, bool) {
+	userInfo := UserInfo{}
+	ok := true
+	err := db.QueryRow("SELECT user_id, login, display_name, user_type FROM t_user WHERE LOWER(login) = $1 ",
+		strings.ToLower(login)).
+		Scan(&userInfo.UserId, &userInfo.UserLogin, &userInfo.DisplayName, &userInfo.UserType)
+
+	if err != nil {
+		ok = false
+		if err != sql.ErrNoRows {
+			log.Fatal(err)
+		}
+	} else {
+		ok = true
+	}
+
+	return userInfo, ok
+}
+
+func CreateUser(username string, email string, password string) (int64, int64, error) {
+	stmt, err := db.Prepare("INSERT INTO t_user(login) VALUES(?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("prepare")
+
+	res, err := stmt.Exec(username)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("exec")
+
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return lastId, rowCnt, err
 }

@@ -81,9 +81,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if byteArr, err := json.Marshal(response); err != nil {
-		log.Fatal(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Response marshal failed"))
+		log.Fatal(err)
 	} else {
 		w.Write(byteArr)
 	}
