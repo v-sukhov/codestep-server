@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type RegisterRequest struct {
@@ -56,7 +57,7 @@ func getRegisterJWT(email string, username string) string {
 		username,
 		//time.Now().Add(time.Hour * 24).Unix(),
 		jwt.StandardClaims{
-			ExpiresAt: 24*3600,
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},
 	}
 
@@ -223,47 +224,51 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 					Success: false,
 					Message: "JSON decoding failed",
 				}
-			} else if valid, email, username, verifyErr := verifyJWT(request.Token); !utils.ValidEmail(email) {
-				response = ResumeRegisterResponse{
-					Success: false,
-					Message: "Invalid e-mail address",
-				}
-			} else if _, ok := db.FindUserByEmail(email); ok {
-				response = ResumeRegisterResponse{
-					Success: false,
-					Message: "User with this email-address already exists",
-				}
-			} else if _, ok := db.FindUserByLogin(username); ok {
-				response = ResumeRegisterResponse{
-					Success: false,
-					Message: "User with this login already exists",
-				}
-			} else if request.Password != request.PasswordConfirmation {
-				response = ResumeRegisterResponse{
-					Success: false,
-					Message: "Password mismatch ",
-				}
-			} else if !valid {
-				errMes := fmt.Sprintf("%s", verifyErr)
-				if err == nil {
-					errMes = "The verification code is not correct or has expired "
-				}
-				response = ResumeRegisterResponse{
-					Success: false,
-					Message: errMes,
-				}
 			} else {
-				_, _, err := db.CreateUser(username, email, request.Password)
+				valid, email, username, verifyErr := verifyJWT(request.Token)
 
-				if err != nil {
+				if !valid {
+					errMes := fmt.Sprintf("%s", verifyErr)
+					if err == nil {
+						errMes = "The verification code is not correct or has expired "
+					}
 					response = ResumeRegisterResponse{
 						Success: false,
-						Message: "Failed to create user ",
+						Message: errMes,
+					}
+				} else if !utils.ValidEmail(email) {
+					response = ResumeRegisterResponse{
+						Success: false,
+						Message: "Invalid e-mail address",
+					}
+				} else if _, ok := db.FindUserByEmail(email); ok {
+					response = ResumeRegisterResponse{
+						Success: false,
+						Message: "User with this email-address already exists",
+					}
+				} else if _, ok := db.FindUserByLogin(username); ok {
+					response = ResumeRegisterResponse{
+						Success: false,
+						Message: "User with this login already exists",
+					}
+				} else if request.Password != request.PasswordConfirmation {
+					response = ResumeRegisterResponse{
+						Success: false,
+						Message: "Password mismatch ",
 					}
 				} else {
-					response = ResumeRegisterResponse{
-						Success: true,
-						Message: "Registration completed successfully ",
+					_, err := db.CreateUser(username, email, request.Password)
+
+					if err != nil {
+						response = ResumeRegisterResponse{
+							Success: false,
+							Message: "Failed to create user ",
+						}
+					} else {
+						response = ResumeRegisterResponse{
+							Success: true,
+							Message: "Registration completed successfully ",
+						}
 					}
 				}
 			}

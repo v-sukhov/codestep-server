@@ -16,7 +16,7 @@ type UserInfo struct {
 func AuthenticateUser(login string, password string) (UserInfo, bool) {
 	userInfo := UserInfo{}
 	ok := true
-	err := db.QueryRow("SELECT user_id, login, display_name, user_type FROM t_user WHERE login = $1 and password_sha256 = sha256($2)",
+	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE login = $1 and password_sha256 = sha256($2)",
 		login, EncryptionSaltWord+password).
 		Scan(&userInfo.UserId, &userInfo.UserLogin, &userInfo.DisplayName, &userInfo.UserType)
 	if err != nil {
@@ -34,7 +34,7 @@ func AuthenticateUser(login string, password string) (UserInfo, bool) {
 func FindUserByEmail(email string) (UserInfo, bool) {
 	userInfo := UserInfo{}
 	ok := true
-	err := db.QueryRow("SELECT user_id, login, display_name, user_type FROM t_user WHERE LOWER(email) = $1 ",
+	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE LOWER(email) = $1 ",
 		strings.ToLower(email)).
 		Scan(&userInfo.UserId, &userInfo.UserLogin, &userInfo.DisplayName, &userInfo.UserType)
 
@@ -53,7 +53,7 @@ func FindUserByEmail(email string) (UserInfo, bool) {
 func FindUserByLogin(login string) (UserInfo, bool) {
 	userInfo := UserInfo{}
 	ok := true
-	err := db.QueryRow("SELECT user_id, login, display_name, user_type FROM t_user WHERE LOWER(login) = $1 ",
+	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE LOWER(login) = $1 ",
 		strings.ToLower(login)).
 		Scan(&userInfo.UserId, &userInfo.UserLogin, &userInfo.DisplayName, &userInfo.UserType)
 
@@ -69,20 +69,15 @@ func FindUserByLogin(login string) (UserInfo, bool) {
 	return userInfo, ok
 }
 
-func CreateUser(username string, email string, password string) (int64, int64, error) {
-	stmt, err := db.Prepare("INSERT INTO t_user(login) VALUES(?)")
+func CreateUser(username string, email string, password string) (int64, error) {
+
+	stmt, err := db.Prepare("INSERT INTO t_user(login, email, password_sha256, user_type) VALUES( $1, $2, $3, $4 )")
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print("prepare")
+	defer stmt.Close()
 
-	res, err := stmt.Exec(username)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Print("exec")
-
-	lastId, err := res.LastInsertId()
+	res, err := stmt.Exec(username, email, EncryptionSaltWord+password, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,5 +87,5 @@ func CreateUser(username string, email string, password string) (int64, int64, e
 		log.Fatal(err)
 	}
 
-	return lastId, rowCnt, err
+	return rowCnt, err
 }
