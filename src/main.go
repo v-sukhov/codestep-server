@@ -42,8 +42,8 @@ func main() {
 
 	// Registration
 	mux.HandleFunc("/api/register", security.Register)
-	mux.HandleFunc("/api/validateregistercode", security.ValidateRegisterCode)
-	mux.HandleFunc("/api/resumeregister", security.ResumeRegister)
+	mux.HandleFunc("/api/validate-register-code", security.ValidateRegisterCode)
+	mux.HandleFunc("/api/resume-register", security.ResumeRegister)
 
 	// protected multiplexer
 

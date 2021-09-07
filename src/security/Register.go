@@ -125,8 +125,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			} else {
 				subject := "Subject: Подтверждение регистрации на Code-Step!\n"
 				var tokenStr = getRegisterJWT(request.EMail, request.Username)
-				var host, port = utils.GetClientUrl()
-				var confirmUrl = fmt.Sprintf("https://%s:%s/confirmation/%s", host, port, tokenStr)
+				var protocol, host, port = utils.GetClientUrl()
+				var confirmUrl = fmt.Sprintf("%s://%s:%s/confirmation/%s", protocol, host, port, tokenStr)
 				var msgStr = fmt.Sprintf("Ваша ссылка для подтверждения e-mail адреса\n\n%s", confirmUrl)
 
 				msg := []byte(subject + msgStr)

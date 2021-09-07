@@ -51,9 +51,10 @@ func ValidEmail(email string) bool {
     return err == nil
 }
 
-func GetClientUrl() (string, string) {
+func GetClientUrl() (string, string, string) {
 	p := properties.MustLoadFile("server.conf", properties.UTF8)
+	protocol := p.MustGetString("client_protocol")
 	host := p.MustGetString("client_addr")
     port := p.MustGetString("client_port")
-	return host, port
+	return protocol, host, port
 }
