@@ -47,6 +47,7 @@ type ResumeRegisterResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Token   string `json:"token"`
+	Login   string `json:"login"`
 }
 
 type RegisterMapClaims struct {
@@ -277,6 +278,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 							Success: true,
 							Message: "Registration completed successfully ",
 							Token:   "Bearer " + token,
+							Login:   username,
 						}
 					}
 				}
