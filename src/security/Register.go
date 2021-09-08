@@ -46,6 +46,7 @@ type ResumeRegisterRequest struct {
 type ResumeRegisterResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+	Token   string `json:"token"`
 }
 
 type RegisterMapClaims struct {
@@ -260,7 +261,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 						Message: "Password mismatch ",
 					}
 				} else {
-					_, err := db.CreateUser(username, email, request.Password)
+					userId, err := db.CreateUser(username, email, request.Password)
 
 					if err != nil {
 						response = ResumeRegisterResponse{
@@ -268,9 +269,14 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 							Message: "Failed to create user ",
 						}
 					} else {
+						token := addUser(UserInfoCache{
+							Id:       userId,
+							UserType: REGULAR,
+						})
 						response = ResumeRegisterResponse{
 							Success: true,
 							Message: "Registration completed successfully ",
+							Token:   "Bearer " + token,
 						}
 					}
 				}

@@ -1,6 +1,8 @@
 package security
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"sync"
 )
 
@@ -12,6 +14,23 @@ const (
 type UserInfoCache struct {
 	Id       int
 	UserType int // REGULAR or PARTICIPANT
+}
+
+/*
+	****************************************
+	Generate token
+	****************************************
+*/
+
+func generateToken() string {
+	len := 256
+	b := make([]byte, len)
+
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+
+	return hex.EncodeToString(b)
 }
 
 /*
@@ -36,10 +55,33 @@ func getUserByToken(token string) (UserInfoCache, bool) {
 }
 
 // if token already exists return false and do nothing
-func addUserByToken(token string, user UserInfoCache) {
+func addUserByToken(token string, user UserInfoCache) bool {
 	userTokenMap.mx.Lock()
-	userTokenMap.m[token] = user
+
+	var res bool
+	if _, ok := userTokenMap.m[token]; ok {
+		res = false
+	} else {
+		userTokenMap.m[token] = user
+		res = true
+	}
+
 	userTokenMap.mx.Unlock()
+	return res
+}
+
+// add user and return new token
+func addUser(user UserInfoCache) string {
+
+	var token string
+	for token = ""; token == ""; {
+		token = generateToken()
+		if ok := addUserByToken(token, user); !ok {
+			token = ""
+		}
+	}
+
+	return token
 }
 
 // delete token

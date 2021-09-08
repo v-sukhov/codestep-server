@@ -38,7 +38,7 @@ func main() {
 	utils.SmtpHost = p.MustGetString("smtp_host")
 	utils.SmtpPort = p.MustGetString("smtp_port")
 	utils.SmtpUser = p.MustGetString("smtp_user")
-	utils.SmtpPass = p.MustGetString("smtp_password")
+	utils.SmtpPassword = p.MustGetString("smtp_password")
 
 	// register settings
 	security.JwtSecrete = p.MustGetString("jwt_secret")

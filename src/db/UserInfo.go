@@ -69,23 +69,16 @@ func FindUserByLogin(login string) (UserInfo, bool) {
 	return userInfo, ok
 }
 
-func CreateUser(username string, email string, password string) (int64, error) {
+func CreateUser(username string, email string, password string) (int, error) {
 
-	stmt, err := db.Prepare("INSERT INTO t_user(login, email, password_sha256, user_type) VALUES( $1, $2, sha256($3), $4 )")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer stmt.Close()
+	var userId int
 
-	res, err := stmt.Exec(username, email, EncryptionSaltWord+password, 1)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rowCnt, err := res.RowsAffected()
+	err := db.QueryRow(`INSERT INTO t_user(login, email, password_sha256, user_type) 
+						VALUES( $1, $2, sha256($3), $4 ) 
+						RETURNING user_id`, username, email, EncryptionSaltWord+password, 1).Scan(&userId)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return rowCnt, err
+	return userId, err
 }

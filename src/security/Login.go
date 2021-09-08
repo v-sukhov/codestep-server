@@ -1,8 +1,6 @@
 package security
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -21,17 +19,6 @@ type LoginResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Token   string `json:"token"`
-}
-
-func generateToken() string {
-	len := 256
-	b := make([]byte, len)
-
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-
-	return hex.EncodeToString(b)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -53,18 +40,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			if userInfo, ok := db.AuthenticateUser(request.Login, request.Password); ok {
-				var token string
-				for token = ""; token == ""; {
-					token = generateToken()
-					if _, ok := getUserByToken(token); !ok {
-						addUserByToken(token, UserInfoCache{
-							Id:       userInfo.UserId,
-							UserType: userInfo.UserType,
-						})
-					} else {
-						token = ""
-					}
-				}
+
+				token := addUser(UserInfoCache{
+					Id:       userInfo.UserId,
+					UserType: userInfo.UserType,
+				})
 
 				response = LoginResponse{
 					Success: true,

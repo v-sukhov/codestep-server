@@ -10,16 +10,16 @@ import (
 )
 
 var (
-	SmtpHost string
-	SmtpPort string
-	SmtpUser string
-	SmtpPass string
+	SmtpHost     string
+	SmtpPort     string
+	SmtpUser     string
+	SmtpPassword string
 )
 
 func SendEmail(to []string, msg []byte) bool {
 
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", SmtpUser, SmtpPass, SmtpHost)
+	auth := smtp.PlainAuth("", SmtpUser, SmtpPassword, SmtpHost)
 	log.Print("Smtp auth success")
 
 	// format smtp address
