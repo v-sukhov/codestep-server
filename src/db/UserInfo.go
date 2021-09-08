@@ -71,7 +71,7 @@ func FindUserByLogin(login string) (UserInfo, bool) {
 
 func CreateUser(username string, email string, password string) (int64, error) {
 
-	stmt, err := db.Prepare("INSERT INTO t_user(login, email, password_sha256, user_type) VALUES( $1, $2, $3, $4 )")
+	stmt, err := db.Prepare("INSERT INTO t_user(login, email, password_sha256, user_type) VALUES( $1, $2, sha256($3), $4 )")
 	if err != nil {
 		log.Fatal(err)
 	}

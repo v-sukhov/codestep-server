@@ -2,59 +2,52 @@ package utils
 
 import (
 	"fmt"
-	"github.com/magiconair/properties"
 	"log"
 	"net/mail"
 	"net/smtp"
+
+	"github.com/magiconair/properties"
 )
 
+var (
+	SmtpHost string
+	SmtpPort string
+	SmtpUser string
+	SmtpPass string
+)
 
 func SendEmail(to []string, msg []byte) bool {
-	p := properties.MustLoadFile("server.conf", properties.UTF8)
 
-    // email properties
-	smtpAddr := p.MustGetString("smtp_host")
-	smtpPort := p.MustGetString("smtp_port")
-	smptUser := p.MustGetString("smtp_user")
-	smtpPass := p.MustGetString("smtp_pass")
-    log.Print("Email parameters got successfully")
+	// Set up authentication information.
+	auth := smtp.PlainAuth("", SmtpUser, SmtpPass, SmtpHost)
+	log.Print("Smtp auth success")
 
-    // Set up authentication information.
-    auth := smtp.PlainAuth("", smptUser, smtpPass, smtpAddr)
-    log.Print("Auth success")
+	// format smtp address
+	smtpAddress := fmt.Sprintf("%s:%v", SmtpHost, SmtpPort)
 
-    // format smtp address
-    smtpAddress := fmt.Sprintf("%s:%v", smtpAddr, smtpPort)
+	// Connect to the server, authenticate, set the sender and recipient,
+	// and send the email all in one step.
+	err := smtp.SendMail(smtpAddress, auth, SmtpUser, to, msg)
+	log.Print("Email sent successfully ")
 
-    // Connect to the server, authenticate, set the sender and recipient,
-    // and send the email all in one step.
-    err := smtp.SendMail(smtpAddress, auth, smptUser, to, msg)
-    log.Print("Email sent successfully ")
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
 
-    if err != nil {
-        log.Fatal(err)
-        return false
-    }
-
-    // return true on success
-    return true
-}
-
-func GetRegisterSecret() string {
-	p := properties.MustLoadFile("server.conf", properties.UTF8)
-	secretJwt := p.MustGetString("jwt_secret")
-	return secretJwt
+	// return true on success
+	return true
 }
 
 func ValidEmail(email string) bool {
-    _, err := mail.ParseAddress(email)
-    return err == nil
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }
 
 func GetClientUrl() (string, string, string) {
 	p := properties.MustLoadFile("server.conf", properties.UTF8)
 	protocol := p.MustGetString("client_protocol")
 	host := p.MustGetString("client_addr")
-    port := p.MustGetString("client_port")
+	port := p.MustGetString("client_port")
 	return protocol, host, port
 }

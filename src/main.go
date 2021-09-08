@@ -8,6 +8,7 @@ import (
 
 	"codestep/db"
 	"codestep/security"
+	"codestep/utils"
 
 	_ "codestep/docs"
 )
@@ -32,6 +33,16 @@ func main() {
 	// certificate files
 	sslCertificateFilePath := p.MustGetString("ssl_certificate")
 	sslPrivateKeyFilePath := p.MustGetString("ssl_private_key")
+
+	// SMTP settings
+	utils.SmtpHost = p.MustGetString("smtp_host")
+	utils.SmtpPort = p.MustGetString("smtp_port")
+	utils.SmtpUser = p.MustGetString("smtp_user")
+	utils.SmtpPass = p.MustGetString("smtp_password")
+
+	// register settings
+	security.JwtSecrete = p.MustGetString("jwt_secret")
+	security.JwtTokenLifetimeMinute = p.MustGetInt("jwt_token_lifetime_minute")
 
 	db.InitConnection(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword)
 

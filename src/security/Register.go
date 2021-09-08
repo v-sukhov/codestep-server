@@ -5,15 +5,21 @@ import (
 	"codestep/utils"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt"
+)
+
+var (
+	JwtTokenLifetimeMinute int
+	JwtSecrete             string
 )
 
 type RegisterRequest struct {
-	EMail string `json:"email"`
+	EMail    string `json:"email"`
 	Username string `json:"username"`
 }
 
@@ -32,8 +38,8 @@ type ValidateResponse struct {
 }
 
 type ResumeRegisterRequest struct {
-	Token string `json:"token"`
-	Password string `json:"password"`
+	Token                string `json:"token"`
+	Password             string `json:"password"`
 	PasswordConfirmation string `json:"passwordconfirmation"`
 }
 
@@ -43,21 +49,21 @@ type ResumeRegisterResponse struct {
 }
 
 type RegisterMapClaims struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
 
 func getRegisterJWT(email string, username string) string {
-	
-	var signingKey = []byte(utils.GetRegisterSecret())
 
-	claims := RegisterMapClaims {
+	var signingKey = []byte(JwtSecrete)
+
+	claims := RegisterMapClaims{
 		email,
 		username,
 		//time.Now().Add(time.Hour * 24).Unix(),
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * time.Duration(JwtTokenLifetimeMinute)).Unix(),
 		},
 	}
 
@@ -71,10 +77,8 @@ func getRegisterJWT(email string, username string) string {
 
 func verifyJWT(tokenStr string) (bool, string, string, error) {
 
-	var signingKey = utils.GetRegisterSecret()
-
 	token, err := jwt.ParseWithClaims(tokenStr, &RegisterMapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signingKey), nil
+		return []byte(JwtSecrete), nil
 	})
 
 	var email = ""
@@ -152,7 +156,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 
-		
 }
 
 func ValidateRegisterCode(w http.ResponseWriter, r *http.Request) {
