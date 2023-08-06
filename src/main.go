@@ -8,6 +8,7 @@ import (
 
 	"codestep/db"
 	"codestep/security"
+	"codestep/services"
 	"codestep/utils"
 
 	_ "codestep/docs"
@@ -41,8 +42,10 @@ func main() {
 	utils.SmtpPassword = p.MustGetString("smtp_password")
 
 	// register settings
-	security.JwtSecrete = p.MustGetString("jwt_secret")
+	security.JwtSecret = p.MustGetString("jwt_secret")
+	security.JwtRegisterSecret = p.MustGetString("jwt_register_secret")
 	security.JwtTokenLifetimeMinute = p.MustGetInt("jwt_token_lifetime_minute")
+	security.JwtRegisterTokenLifetimeMinute = p.MustGetInt("jwt_register_token_lifetime_minute")
 
 	db.InitConnection(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword)
 
@@ -59,7 +62,12 @@ func main() {
 	// protected multiplexer
 
 	muxProtected := http.NewServeMux()
+	// Logout
 	muxProtected.HandleFunc("/api/protected/logout", security.Logout)
+	// Supertask
+	muxProtected.HandleFunc("/api/protected/save-supertask", services.SaveSupertask)
+	muxProtected.HandleFunc("/api/protected/get-supertask", services.GetSupertask)
+	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", services.GetUserSupertaskList)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

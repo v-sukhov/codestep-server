@@ -13,3 +13,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# certificates
+build/security
+
+# configuration file
+build/server.conf

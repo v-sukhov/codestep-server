@@ -1,5 +1,9 @@
 package security
 
+/*
+	НЕ ИСПОЛЬЗУЕТСЯ
+*/
+
 import (
 	"crypto/rand"
 	"encoding/hex"
@@ -22,7 +26,7 @@ type UserInfoCache struct {
 	****************************************
 */
 
-func generateToken() string {
+func _generateToken() string {
 	len := 256
 	b := make([]byte, len)
 
@@ -47,7 +51,7 @@ type userByTokenMap struct {
 
 var userTokenMap userByTokenMap
 
-func getUserByToken(token string) (UserInfoCache, bool) {
+func _getUserByToken(token string) (UserInfoCache, bool) {
 	userTokenMap.mx.RLock()
 	user, ok := userTokenMap.m[token]
 	userTokenMap.mx.RUnlock()
@@ -55,7 +59,7 @@ func getUserByToken(token string) (UserInfoCache, bool) {
 }
 
 // if token already exists return false and do nothing
-func addUserByToken(token string, user UserInfoCache) bool {
+func _addUserByToken(token string, user UserInfoCache) bool {
 	userTokenMap.mx.Lock()
 
 	var res bool
@@ -71,12 +75,12 @@ func addUserByToken(token string, user UserInfoCache) bool {
 }
 
 // add user and return new token
-func addUser(user UserInfoCache) string {
+func _addUser(user UserInfoCache) string {
 
 	var token string
 	for token = ""; token == ""; {
-		token = generateToken()
-		if ok := addUserByToken(token, user); !ok {
+		token = _generateToken()
+		if ok := _addUserByToken(token, user); !ok {
 			token = ""
 		}
 	}
@@ -85,7 +89,7 @@ func addUser(user UserInfoCache) string {
 }
 
 // delete token
-func deleteToken(token string) {
+func _deleteToken(token string) {
 	userTokenMap.mx.Lock()
 	delete(userTokenMap.m, token)
 	userTokenMap.mx.Unlock()

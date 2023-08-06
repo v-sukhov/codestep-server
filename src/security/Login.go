@@ -41,15 +41,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		} else {
 			if userInfo, ok := db.AuthenticateUser(request.Login, request.Password); ok {
 
-				token := addUser(UserInfoCache{
+				/*token := addUser(UserInfoCache{
 					Id:       userInfo.UserId,
 					UserType: userInfo.UserType,
-				})
+				})*/
 
-				response = LoginResponse{
-					Success: true,
-					Message: "OK",
-					Token:   "Bearer " + token,
+				if token, err := generateJWT(userInfo.UserId); err != nil {
+					response = LoginResponse{
+						Success: false,
+						Message: "Internal server error: " + err.Error(),
+					}
+				} else {
+					response = LoginResponse{
+						Success: true,
+						Message: "OK",
+						Token:   "Bearer " + token,
+					}
 				}
 			} else {
 				response = LoginResponse{

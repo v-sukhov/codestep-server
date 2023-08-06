@@ -4,12 +4,12 @@ import (
 	security "codestep/security"
 )
 
-// swagger:route POST /api/protectes/logout logout-tag idOfLogoutEdnpoint
+// swagger:route POST /api/protectes/logout logout idOfLogoutEndpoint
 // Logout user
 // responses:
 //   200: logoutResponse
 
-// swagger:parameters idOfLogoutEdnpoint
+// swagger:parameters idOfLogoutEndpoint
 type logoutRequestWrapper struct {
 	// Empty request
 	// in:body

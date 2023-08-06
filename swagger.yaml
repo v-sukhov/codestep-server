@@ -2,6 +2,85 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  GetSupertaskRequest:
+    properties:
+      authorUserId:
+        format: int32
+        type: integer
+        x-go-name: AuthorUserId
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
+    type: object
+    x-go-package: codestep/services
+  GetSupertaskResponse:
+    properties:
+      authorUserId:
+        format: int32
+        type: integer
+        x-go-name: AuthorUserId
+      commitMessage:
+        type: string
+        x-go-name: CommitMessage
+      commited:
+        type: boolean
+        x-go-name: Commited
+      message:
+        type: string
+        x-go-name: Message
+      parentVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: ParentVersionNumber
+      saveDTM:
+        format: date-time
+        type: string
+        x-go-name: SaveDTM
+      success:
+        type: boolean
+        x-go-name: Success
+      supertaskDesc:
+        type: string
+        x-go-name: SupertaskDesc
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskName:
+        type: string
+        x-go-name: SupertaskName
+      supertaskObjectJson:
+        type: string
+        x-go-name: SupertaskObjectJson
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
+    type: object
+    x-go-package: codestep/services
+  GetUserSupertaskListRequest:
+    type: object
+    x-go-package: codestep/services
+  GetUserSupertaskListResponse:
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+      supertasks:
+        items:
+          $ref: '#/definitions/SupertaskLastVersionInfo'
+        type: array
+        x-go-name: Supertasks
+    type: object
+    x-go-package: codestep/services
   LoginRequest:
     properties:
       login:
@@ -25,16 +104,134 @@ definitions:
         x-go-name: Token
     type: object
     x-go-package: codestep/security
+  LogoutRequest:
+    type: object
+    x-go-package: codestep/security
+  LogoutResponse:
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/security
+  SaveSupertaskRequest:
+    properties:
+      authorUserId:
+        format: int32
+        type: integer
+        x-go-name: AuthorUserId
+      commitMessage:
+        type: string
+        x-go-name: CommitMessage
+      commited:
+        type: boolean
+        x-go-name: Commited
+      parentVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: ParentVersionNumber
+      supertaskDesc:
+        type: string
+        x-go-name: SupertaskDesc
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskName:
+        type: string
+        x-go-name: SupertaskName
+      supertaskObjectJson:
+        type: string
+        x-go-name: SupertaskObjectJson
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskResponse:
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
+    type: object
+    x-go-package: codestep/services
+  SupertaskLastVersionInfo:
+    properties:
+      commitMessage:
+        type: string
+        x-go-name: CommitMessage
+      commited:
+        type: boolean
+        x-go-name: Commited
+      lastVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: LastVersionNumber
+      ownerUserId:
+        format: int32
+        type: integer
+        x-go-name: OwnerUserId
+      ownerUserName:
+        type: string
+        x-go-name: OwnerUserName
+      parentVersionNumber:
+        type: string
+        x-go-name: ParentVersionNumber
+      saveDTM:
+        format: date-time
+        type: string
+        x-go-name: SaveDTM
+      supertaskCreateDTM:
+        format: date-time
+        type: string
+        x-go-name: SupertaskCreateDTM
+      supertaskDesc:
+        type: string
+        x-go-name: SupertaskDesc
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskName:
+        type: string
+        x-go-name: SupertaskName
+      supertaskRightTypeId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskRightTypeId
+      supertaskRightTypeName:
+        type: string
+        x-go-name: SupertaskRightTypeName
+      versionAuthorUserName:
+        type: string
+        x-go-name: VersionAuthorUserName
+    type: object
+    x-go-package: codestep/db
 host: localhost
 info:
   description: Documentation of codestep JSON API.
   title: classification codestep
   version: 1.0.0
 paths:
-  /login:
+  /api/login:
     post:
       description: Authenticate user
-      operationId: idOfLoginEdnpoint
+      operationId: idOfLoginEndpoint
       parameters:
       - description: Login and password
         in: body
@@ -45,14 +242,87 @@ paths:
         "200":
           $ref: '#/responses/loginResponse'
       tags:
-      - login-tag
+      - login
+  /api/protected/get-supertask:
+    post:
+      description: Get supertask
+      operationId: idOfGetSupertaskEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetSupertaskRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getSupertaskResponse'
+      tags:
+      - get-supertask
+  /api/protected/get-user-supertask-list:
+    post:
+      description: Get supertask list for current user
+      operationId: idOfGetUserSupertaskListEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetUserSupertaskListRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getUserSupertaskListResponse'
+      tags:
+      - get-user-supertask-list
+  /api/protected/save-supertask:
+    post:
+      description: Save supertask
+      operationId: idOfSaveSupertaskEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/SaveSupertaskRequest'
+      responses:
+        "200":
+          $ref: '#/responses/saveSupertaskResponse'
+      tags:
+      - save-supertask
+  /api/protectes/logout:
+    post:
+      description: Logout user
+      operationId: idOfLogoutEndpoint
+      parameters:
+      - description: Empty request
+        in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/LogoutRequest'
+      responses:
+        "200":
+          $ref: '#/responses/logoutResponse'
+      tags:
+      - logout
 produces:
 - application/json
 responses:
+  getSupertaskResponse:
+    description: Save supertask success
+    schema:
+      $ref: '#/definitions/GetSupertaskResponse'
+  getUserSupertaskListResponse:
+    description: Save supertask success
+    schema:
+      $ref: '#/definitions/GetUserSupertaskListResponse'
   loginResponse:
     description: User authentication success
     schema:
       $ref: '#/definitions/LoginResponse'
+  logoutResponse:
+    description: User logout success
+    schema:
+      $ref: '#/definitions/LogoutResponse'
+  saveSupertaskResponse:
+    description: Save supertask success
+    schema:
+      $ref: '#/definitions/SaveSupertaskResponse'
 schemes:
 - http
 securityDefinitions:

@@ -13,11 +13,6 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-var (
-	JwtTokenLifetimeMinute int
-	JwtSecrete             string
-)
-
 type RegisterRequest struct {
 	EMail    string `json:"email"`
 	Username string `json:"username"`
@@ -58,14 +53,14 @@ type RegisterMapClaims struct {
 
 func getRegisterJWT(email string, username string) string {
 
-	var signingKey = []byte(JwtSecrete)
+	var signingKey = []byte(JwtRegisterSecret)
 
 	claims := RegisterMapClaims{
 		email,
 		username,
 		//time.Now().Add(time.Hour * 24).Unix(),
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * time.Duration(JwtTokenLifetimeMinute)).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * time.Duration(JwtRegisterTokenLifetimeMinute)).Unix(),
 		},
 	}
 
@@ -80,7 +75,7 @@ func getRegisterJWT(email string, username string) string {
 func verifyJWT(tokenStr string) (bool, string, string, error) {
 
 	token, err := jwt.ParseWithClaims(tokenStr, &RegisterMapClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(JwtSecrete), nil
+		return []byte(JwtRegisterSecret), nil
 	})
 
 	var email = ""
@@ -270,15 +265,22 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 							Message: "Failed to create user ",
 						}
 					} else {
-						token := addUser(UserInfoCache{
+						/*token := addUser(UserInfoCache{
 							Id:       userId,
 							UserType: REGULAR,
-						})
-						response = ResumeRegisterResponse{
-							Success: true,
-							Message: "Registration completed successfully ",
-							Token:   "Bearer " + token,
-							Login:   username,
+						})*/
+						if token, err := generateJWT(userId); err != nil {
+							response = ResumeRegisterResponse{
+								Success: false,
+								Message: "Inernal server error: " + err.Error(),
+							}
+						} else {
+							response = ResumeRegisterResponse{
+								Success: true,
+								Message: "Registration completed successfully ",
+								Token:   "Bearer " + token,
+								Login:   username,
+							}
 						}
 					}
 				}
