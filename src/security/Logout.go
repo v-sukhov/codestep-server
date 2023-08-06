@@ -19,16 +19,21 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")[7:]
 
-	if _, ok := getUserByToken(token); ok {
-		deleteToken(token)
+	if valid, _, err := VerifyAndDecodeJWT(token); valid && err == nil {
+		//deleteToken(token)
 		response = LogoutResponse{
 			Success: true,
 			Message: "OK",
 		}
-	} else {
+	} else if !valid {
 		response = LogoutResponse{
 			Success: false,
 			Message: "Invalid token",
+		}
+	} else {
+		response = LogoutResponse{
+			Success: false,
+			Message: "Internal server error: " + err.Error(),
 		}
 	}
 

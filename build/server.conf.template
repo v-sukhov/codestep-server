@@ -10,12 +10,12 @@ client_port = 3000
 # database server
 database_host = localhost
 database_port = 5432
-database_dbname = codestep_db
-database_user = codestep
-database_password = codestep
+database_dbname = 
+database_user = 
+database_password = 
 
 # password encryption secrete word
-encryption_salt_word = salt-
+encryption_salt_word = 
 
 # SSL certificate and private key files
 ssl_certificate = ./security/cert.pem
@@ -25,13 +25,13 @@ ssl_private_key = ./security/key.pem
 # Mail.ru password generates on url 
 # https://account.mail.ru/user/2-step-auth/passwords/
 
-smtp_host = smtp.mail.ru
-smtp_port = 587
+smtp_host = 
+smtp_port = 
 smtp_user = 
 smtp_password = 
 
 # register settings
-jwt_secret = 123secretkeycodestep
-jwt_register_secret = jwtRegisterSecretCodestep312
+jwt_secret = 
+jwt_register_secret = 
 jwt_token_lifetime_minute = 43200
 jwt_register_token_lifetime_minute = 30
