@@ -20,10 +20,14 @@ import (
 type GetUserSupertaskListRequest struct {
 }
 
-type GetUserSupertaskListResponse struct {
-	Success    bool                          `json:"success"`
-	Message    string                        `json:"message"`
+type GetUserSupertaskListData struct {
 	Supertasks []db.SupertaskLastVersionInfo `json:"supertasks"`
+}
+
+type GetUserSupertaskListResponse struct {
+	Success bool                     `json:"success"`
+	Message string                   `json:"message"`
+	Data    GetUserSupertaskListData `json:"data"`
 }
 
 func GetUserSupertaskList(w http.ResponseWriter, r *http.Request) {
@@ -41,10 +45,13 @@ func GetUserSupertaskList(w http.ResponseWriter, r *http.Request) {
 			Message: err.Error(),
 		}
 	} else {
-		response = GetUserSupertaskListResponse{
-			Success:    true,
-			Message:    "",
+		data := GetUserSupertaskListData{
 			Supertasks: supertasks,
+		}
+		response = GetUserSupertaskListResponse{
+			Success: true,
+			Message: "",
+			Data:    data,
 		}
 	}
 

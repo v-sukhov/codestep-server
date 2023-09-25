@@ -25,9 +25,7 @@ type GetSupertaskRequest struct {
 	AuthorUserId  int32 `json:"authorUserId"`
 }
 
-type GetSupertaskResponse struct {
-	Success             bool      `json:"success"`
-	Message             string    `json:"message"`
+type GetSupertaskData struct {
 	SupertaskId         int32     `json:"supertaskId"`
 	VersionNumber       int32     `json:"versionNumber"`
 	ParentVersionNumber int32     `json:"parentVersionNumber"`
@@ -38,6 +36,12 @@ type GetSupertaskResponse struct {
 	SupertaskName       string    `json:"supertaskName"`
 	SupertaskDesc       string    `json:"supertaskDesc"`
 	SupertaskObjectJson string    `json:"supertaskObjectJson"`
+}
+
+type GetSupertaskResponse struct {
+	Success bool             `json:"success"`
+	Message string           `json:"message"`
+	Data    GetSupertaskData `json:"data"`
 }
 
 func GetSupertask(w http.ResponseWriter, r *http.Request) {
@@ -80,9 +84,7 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 						Message: err.Error(),
 					}
 				} else {
-					response = GetSupertaskResponse{
-						Success:             true,
-						Message:             "",
+					data := GetSupertaskData{
 						SupertaskId:         supertaskVersion.SupertaskId,
 						VersionNumber:       supertaskVersion.VersionNumber,
 						ParentVersionNumber: supertaskVersion.ParentVersionNumber,
@@ -93,6 +95,11 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 						SupertaskName:       supertaskVersion.SupertaskName,
 						SupertaskDesc:       supertaskVersion.SupertaskDesc,
 						SupertaskObjectJson: supertaskVersion.SupertaskObjectJson,
+					}
+					response = GetSupertaskResponse{
+						Success: true,
+						Message: "",
+						Data:    data,
 					}
 				}
 

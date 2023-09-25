@@ -35,3 +35,6 @@ jwt_secret =
 jwt_register_secret = 
 jwt_token_lifetime_minute = 43200
 jwt_register_token_lifetime_minute = 30
+
+# logging
+cors_log_http = no

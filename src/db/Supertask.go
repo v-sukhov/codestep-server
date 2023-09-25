@@ -42,6 +42,9 @@ type SupertaskLastVersionInfo struct {
 	- сохранение существующей
 	- сохранение закоммиченной версии
 	- сохранение незакоммиченной версии
+	- VersionNumber -
+		в случае коммита - вычисляемое поле: вычисляется и записывается в структуру, входящее значение не используется
+		если нет коммита - записывается входящее значение
 */
 func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 
@@ -284,6 +287,17 @@ func GetSupertaskUserRight(supertaskId int32, userId int32) (supertaskUserRight 
 	if err == sql.ErrNoRows {
 		err = nil
 		supertaskUserRight = 0
+	}
+
+	return
+}
+
+func GetSupertaskOwnerId(supertaskId int32) (ownerUserId int32, err error) {
+	err = db.QueryRow(`SELECT user FROM t_supertask_user_right WHERE supertask_id = $1 and supertask_right_type_id = 1`, supertaskId).Scan(&ownerUserId)
+
+	if err == sql.ErrNoRows {
+		err = nil
+		ownerUserId = 0
 	}
 
 	return

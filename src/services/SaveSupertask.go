@@ -28,21 +28,23 @@ import (
 
 type SaveSupertaskRequest struct {
 	SupertaskId         int32  `json:"supertaskId"`
-	VersionNumber       int32  `json:"versionNumber"`
 	ParentVersionNumber int32  `json:"parentVersionNumber"`
 	Commited            bool   `json:"commited"`
-	AuthorUserId        int32  `json:"authorUserId"`
 	CommitMessage       string `json:"commitMessage"`
 	SupertaskName       string `json:"supertaskName"`
 	SupertaskDesc       string `json:"supertaskDesc"`
 	SupertaskObjectJson string `json:"supertaskObjectJson"`
 }
 
+type SaveSupertaskData struct {
+	SupertaskId   int32 `json:"supertaskId"`
+	VersionNumber int32 `json:"versionNumber"`
+}
+
 type SaveSupertaskResponse struct {
-	Success       bool   `json:"success"`
-	Message       string `json:"message"`
-	SupertaskId   int32  `json:"supertaskId"`
-	VersionNumber int32  `json:"versionNumber"`
+	Success bool              `json:"success"`
+	Message string            `json:"message"`
+	Data    SaveSupertaskData `json:"data"`
 }
 
 func SaveSupertask(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +98,11 @@ func SaveSupertask(w http.ResponseWriter, r *http.Request) {
 			if success {
 				supertaskVersion := db.SupertaskVersion{
 					SupertaskId:         request.SupertaskId,
-					VersionNumber:       request.VersionNumber,
+					VersionNumber:       0,
+					AuthorUserId:        userId,
 					ParentVersionNumber: request.ParentVersionNumber,
 					Commited:            request.Commited,
 					CommitMessage:       request.CommitMessage,
-					AuthorUserId:        userId,
 					SupertaskName:       request.SupertaskName,
 					SupertaskDesc:       request.SupertaskDesc,
 					SupertaskObjectJson: request.SupertaskObjectJson,
@@ -112,11 +114,14 @@ func SaveSupertask(w http.ResponseWriter, r *http.Request) {
 						Message: err.Error(),
 					}
 				} else {
-					response = SaveSupertaskResponse{
-						Success:       true,
-						Message:       "OK",
+					data := SaveSupertaskData{
 						SupertaskId:   supertaskVersion.SupertaskId,
 						VersionNumber: supertaskVersion.VersionNumber,
+					}
+					response = SaveSupertaskResponse{
+						Success: true,
+						Message: "OK",
+						Data:    data,
 					}
 				}
 			} else {

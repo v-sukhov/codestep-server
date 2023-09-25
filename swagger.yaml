@@ -2,23 +2,7 @@ basePath: /
 consumes:
 - application/json
 definitions:
-  GetSupertaskRequest:
-    properties:
-      authorUserId:
-        format: int32
-        type: integer
-        x-go-name: AuthorUserId
-      supertaskId:
-        format: int32
-        type: integer
-        x-go-name: SupertaskId
-      versionNumber:
-        format: int32
-        type: integer
-        x-go-name: VersionNumber
-    type: object
-    x-go-package: codestep/services
-  GetSupertaskResponse:
+  GetSupertaskData:
     properties:
       authorUserId:
         format: int32
@@ -30,9 +14,6 @@ definitions:
       commited:
         type: boolean
         x-go-name: Commited
-      message:
-        type: string
-        x-go-name: Message
       parentVersionNumber:
         format: int32
         type: integer
@@ -41,9 +22,6 @@ definitions:
         format: date-time
         type: string
         x-go-name: SaveDTM
-      success:
-        type: boolean
-        x-go-name: Success
       supertaskDesc:
         type: string
         x-go-name: SupertaskDesc
@@ -63,22 +41,56 @@ definitions:
         x-go-name: VersionNumber
     type: object
     x-go-package: codestep/services
-  GetUserSupertaskListRequest:
+  GetSupertaskRequest:
+    properties:
+      authorUserId:
+        format: int32
+        type: integer
+        x-go-name: AuthorUserId
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
     type: object
     x-go-package: codestep/services
-  GetUserSupertaskListResponse:
+  GetSupertaskResponse:
     properties:
+      data:
+        $ref: '#/definitions/GetSupertaskData'
       message:
         type: string
         x-go-name: Message
       success:
         type: boolean
         x-go-name: Success
+    type: object
+    x-go-package: codestep/services
+  GetUserSupertaskListData:
+    properties:
       supertasks:
         items:
           $ref: '#/definitions/SupertaskLastVersionInfo'
         type: array
         x-go-name: Supertasks
+    type: object
+    x-go-package: codestep/services
+  GetUserSupertaskListRequest:
+    type: object
+    x-go-package: codestep/services
+  GetUserSupertaskListResponse:
+    properties:
+      data:
+        $ref: '#/definitions/GetUserSupertaskListData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
     type: object
     x-go-package: codestep/services
   LoginRequest:
@@ -117,12 +129,20 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/security
-  SaveSupertaskRequest:
+  SaveSupertaskData:
     properties:
-      authorUserId:
+      supertaskId:
         format: int32
         type: integer
-        x-go-name: AuthorUserId
+        x-go-name: SupertaskId
+      versionNumber:
+        format: int32
+        type: integer
+        x-go-name: VersionNumber
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskRequest:
+    properties:
       commitMessage:
         type: string
         x-go-name: CommitMessage
@@ -146,28 +166,18 @@ definitions:
       supertaskObjectJson:
         type: string
         x-go-name: SupertaskObjectJson
-      versionNumber:
-        format: int32
-        type: integer
-        x-go-name: VersionNumber
     type: object
     x-go-package: codestep/services
   SaveSupertaskResponse:
     properties:
+      data:
+        $ref: '#/definitions/SaveSupertaskData'
       message:
         type: string
         x-go-name: Message
       success:
         type: boolean
         x-go-name: Success
-      supertaskId:
-        format: int32
-        type: integer
-        x-go-name: SupertaskId
-      versionNumber:
-        format: int32
-        type: integer
-        x-go-name: VersionNumber
     type: object
     x-go-package: codestep/services
   SupertaskLastVersionInfo:
@@ -273,7 +283,14 @@ paths:
       - get-user-supertask-list
   /api/protected/save-supertask:
     post:
-      description: Save supertask
+      description: |-
+        Save supertask
+        Если SupertaskId = 0 - создаётся новый supertask
+        Если Commited = true создаётся закоммиченная неизменяемая версия supertask.
+        Ей присвивается новый номер версии. При этом указывается ParentVersionNumber - от какой версии произведена.
+        Если ParentVersionNumber = 0 - то это считается первоначальной версией, то есть которая ни от чего не произведена.
+        Если Commited = false создаётся незакоммиченная версия данного пользователя.
+        Незакоммиченная версия у данного ползователя может быть только одна.
       operationId: idOfSaveSupertaskEndpoint
       parameters:
       - in: body

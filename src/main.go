@@ -47,6 +47,13 @@ func main() {
 	security.JwtTokenLifetimeMinute = p.MustGetInt("jwt_token_lifetime_minute")
 	security.JwtRegisterTokenLifetimeMinute = p.MustGetInt("jwt_register_token_lifetime_minute")
 
+	// Logging settings
+	if p.GetString("cors_log_http", "no") == "yes" {
+		CorsLogHttp = true
+	} else {
+		CorsLogHttp = false
+	}
+
 	db.InitConnection(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword)
 
 	mux := http.NewServeMux()
