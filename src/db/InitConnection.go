@@ -12,7 +12,7 @@ var db *sql.DB
 
 // InitConnection : initialize db connection
 func InitConnection(host string, port string, dbname string, user string, password string) {
-	dataSourceName := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", host, port, dbname, user, password)
+	dataSourceName := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable application_name=codestep_server", host, port, dbname, user, password)
 	_db, err := sql.Open("postgres", dataSourceName)
 
 	if err != nil {

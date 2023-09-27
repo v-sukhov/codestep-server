@@ -153,7 +153,15 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 	} else {
 		// Просто сохраняем текущую рабочую версию данного пользователя
 
-		if _, err := db.Exec(`CREATE TEMP TABLE TMP_NEW_SUPERTASK_VERSION
+		ctx := context.TODO()
+		tx, err := db.BeginTx(ctx, nil)
+
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+
+		if _, err := tx.Exec(`CREATE TEMP TABLE TMP_NEW_SUPERTASK_VERSION
 				(
 				SUPERTASK_ID INTEGER,
 				VERSION_NUMBER INTEGER,
@@ -169,7 +177,7 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			return err
 		}
 
-		if _, err := db.Exec(`INSERT INTO TMP_NEW_SUPERTASK_VERSION (
+		if _, err := tx.Exec(`INSERT INTO TMP_NEW_SUPERTASK_VERSION (
 				SUPERTASK_ID,
 				VERSION_NUMBER,
 				PARENT_VERSION_NUMBER,
@@ -193,7 +201,7 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			return err
 		}
 
-		if _, err := db.Exec(`	MERGE INTO T_SUPERTASK_VERSION sv
+		if _, err := tx.Exec(`	MERGE INTO T_SUPERTASK_VERSION sv
 		USING TMP_NEW_SUPERTASK_VERSION as new_data				
 		ON sv.SUPERTASK_ID = new_data.SUPERTASK_ID AND sv.AUTHOR_USER_ID = new_data.AUTHOR_USER_ID AND sv.COMMITED = FALSE
 		WHEN MATCHED THEN
@@ -238,7 +246,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			return err
 		}
 
-		if _, err := db.Exec(`DROP TABLE TMP_NEW_SUPERTASK_VERSION`); err != nil {
+		if _, err := tx.Exec(`DROP TABLE TMP_NEW_SUPERTASK_VERSION`); err != nil {
+			return err
+		}
+
+		if err := tx.Commit(); err != nil {
 			return err
 		}
 	}
@@ -246,7 +258,7 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 	return nil
 }
 
-func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32, AuthorUserId int32) (supertaskVersion SupertaskVersion, err error) {
+func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32) (supertaskVersion SupertaskVersion, err error) {
 
 	err = db.QueryRow(`
 					SELECT
@@ -263,7 +275,40 @@ func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32, Author
 					FROM
 						t_supertask_version
 					WHERE
-						supertask_id = $1 and version_number = $2 and author_user_id = $3`, supertaskId, supertaskVersionNumber, AuthorUserId).
+						supertask_id = $1 and version_number = $2`, supertaskId, supertaskVersionNumber).
+		Scan(
+			&supertaskVersion.SupertaskId,
+			&supertaskVersion.VersionNumber,
+			&supertaskVersion.ParentVersionNumber,
+			&supertaskVersion.Commited,
+			&supertaskVersion.AuthorUserId,
+			&supertaskVersion.CommitMessage,
+			&supertaskVersion.SaveDTM,
+			&supertaskVersion.SupertaskName,
+			&supertaskVersion.SupertaskDesc,
+			&supertaskVersion.SupertaskObjectJson)
+
+	return
+}
+
+func GetSupertaskWorkVersion(supertaskId int32, AuthorUserId int32) (supertaskVersion SupertaskVersion, err error) {
+
+	err = db.QueryRow(`
+					SELECT
+						supertask_id,
+						version_number,
+						parent_version_number,
+						commited,
+						author_user_id,
+						commit_message,
+						save_dtm,
+						supertask_name,
+						supertask_desc,
+						supertask_object_json
+					FROM
+						t_supertask_version
+					WHERE
+						supertask_id = $1 and commited = false and author_user_id = $2`, supertaskId, AuthorUserId).
 		Scan(
 			&supertaskVersion.SupertaskId,
 			&supertaskVersion.VersionNumber,

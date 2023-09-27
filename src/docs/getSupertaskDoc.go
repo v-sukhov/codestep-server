@@ -5,7 +5,10 @@ import (
 )
 
 // swagger:route POST /api/protected/get-supertask get-supertask idOfGetSupertaskEndpoint
-// Get supertask
+// Возвращает объект версии суперзадачи
+// Если versionNumber присутствует и != 0 - возвращает соответствующую закоммиченную версию
+// Иначе если authorUserId присутствует и != 0 - возвращает рабочую версию соответствующего пользователя
+// Иначе возвращает рабочую версию запрашивающего пользователя
 // responses:
 //   200: getSupertaskResponse
 

@@ -44,6 +44,13 @@ type GetSupertaskResponse struct {
 	Data    GetSupertaskData `json:"data"`
 }
 
+/*
+	Возвращает объект версии суперзадачи
+	Если versionNumber присутствует и != 0 - возвращает соответствующую закоммиченную версию
+	Иначе если authorUserId присутствует и != 0 - возвращает рабочую версию соответствующего пользователя
+	Иначе возвращает рабочую версию запрашивающего пользователя
+*/
+
 func GetSupertask(w http.ResponseWriter, r *http.Request) {
 	var request GetSupertaskRequest
 	var response GetSupertaskResponse
@@ -76,7 +83,18 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 					Message: "User does not have permition on the supertask",
 				}
 			} else {
-				supertaskVersion, err := db.GetSupertaskVersion(request.SupertaskId, request.VersionNumber, request.AuthorUserId)
+				var supertaskVersion db.SupertaskVersion
+				var err error
+
+				if request.VersionNumber != 0 {
+					supertaskVersion, err = db.GetSupertaskVersion(request.SupertaskId, request.VersionNumber)
+				} else {
+					authorUserId := request.AuthorUserId
+					if authorUserId == 0 {
+						authorUserId = userId
+					}
+					supertaskVersion, err = db.GetSupertaskWorkVersion(request.SupertaskId, authorUserId)
+				}
 
 				if err != nil {
 					response = GetSupertaskResponse{

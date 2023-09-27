@@ -255,7 +255,11 @@ paths:
       - login
   /api/protected/get-supertask:
     post:
-      description: Get supertask
+      description: |-
+        Возвращает объект версии суперзадачи
+        Если versionNumber присутствует и != 0 - возвращает соответствующую закоммиченную версию
+        Иначе если authorUserId присутствует и != 0 - возвращает рабочую версию соответствующего пользователя
+        Иначе возвращает рабочую версию запрашивающего пользователя
       operationId: idOfGetSupertaskEndpoint
       parameters:
       - in: body
