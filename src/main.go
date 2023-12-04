@@ -75,6 +75,9 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/save-supertask", services.SaveSupertask)
 	muxProtected.HandleFunc("/api/protected/get-supertask", services.GetSupertask)
 	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", services.GetUserSupertaskList)
+	muxProtected.HandleFunc("/api/protected/save-supertask-solution", services.SaveSupertaskSolution)
+	muxProtected.HandleFunc("/api/protected/get-supertask-solution", services.GetSupertaskSolution)
+	muxProtected.HandleFunc("/api/protected/save-supertask-result", services.SaveSupertaskResult)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

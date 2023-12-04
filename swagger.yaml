@@ -69,6 +69,80 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/services
+  GetSupertaskSolutionData:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      saveDTM:
+        format: date-time
+        type: string
+        x-go-name: SaveDTM
+      solutionDesc:
+        type: string
+        x-go-name: SolutionDesc
+      solutionKey:
+        format: int16
+        type: integer
+        x-go-name: SolutionKey
+      solutionStatus:
+        format: int16
+        type: integer
+        x-go-name: SolutionStatus
+      solutionWorkspaceXML:
+        type: string
+        x-go-name: SolutionWorkspaceXML
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: SupertaskVersionNumber
+      taskNum:
+        format: int16
+        type: integer
+        x-go-name: TaskNum
+    type: object
+    x-go-package: codestep/services
+  GetSupertaskSolutionRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      solutionKey:
+        format: int16
+        type: integer
+        x-go-name: SolutionKey
+      solutionStatus:
+        format: int16
+        type: integer
+        x-go-name: SolutionStatus
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      taskNum:
+        format: int16
+        type: integer
+        x-go-name: TaskNum
+    type: object
+    x-go-package: codestep/services
+  GetSupertaskSolutionResponse:
+    properties:
+      data:
+        $ref: '#/definitions/GetSupertaskSolutionData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services
   GetUserSupertaskListData:
     properties:
       supertasks:
@@ -180,6 +254,101 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/services
+  SaveSupertaskResultData:
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskResultRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      passed:
+        type: boolean
+        x-go-name: Passed
+      score:
+        format: int16
+        type: integer
+        x-go-name: Score
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: SupertaskVersionNumber
+      taskNum:
+        format: int16
+        type: integer
+        x-go-name: TaskNum
+      tries:
+        format: int16
+        type: integer
+        x-go-name: Tries
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskResultResponse:
+    properties:
+      data:
+        $ref: '#/definitions/SaveSupertaskResultData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskSolutionData:
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskSolutionRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      solutionDesc:
+        type: string
+        x-go-name: SolutionDesc
+      solutionKey:
+        format: int16
+        type: integer
+        x-go-name: SolutionKey
+      solutionStatus:
+        format: int16
+        type: integer
+        x-go-name: SolutionStatus
+      solutionWorkspaceXML:
+        type: string
+        x-go-name: SolutionWorkspaceXML
+      supertaskId:
+        format: int32
+        type: integer
+        x-go-name: SupertaskId
+      supertaskVersionNumber:
+        format: int32
+        type: integer
+        x-go-name: SupertaskVersionNumber
+      taskNum:
+        format: int16
+        type: integer
+        x-go-name: TaskNum
+    type: object
+    x-go-package: codestep/services
+  SaveSupertaskSolutionResponse:
+    properties:
+      data:
+        $ref: '#/definitions/SaveSupertaskSolutionData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services
   SupertaskLastVersionInfo:
     properties:
       commitMessage:
@@ -271,6 +440,20 @@ paths:
           $ref: '#/responses/getSupertaskResponse'
       tags:
       - get-supertask
+  /api/protected/get-supertask-solution:
+    post:
+      description: Получить решение задачи
+      operationId: idOfGetSupertaskSolutionEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetSupertaskSolutionRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getSupertaskSolutionResponse'
+      tags:
+      - get-supertask-solution
   /api/protected/get-user-supertask-list:
     post:
       description: Get supertask list for current user
@@ -306,6 +489,34 @@ paths:
           $ref: '#/responses/saveSupertaskResponse'
       tags:
       - save-supertask
+  /api/protected/save-supertask-result:
+    post:
+      description: Сохранить результат тестирования задачи
+      operationId: idOfSaveSupertaskResultEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/SaveSupertaskResultRequest'
+      responses:
+        "200":
+          $ref: '#/responses/saveSupertaskResultResponse'
+      tags:
+      - save-supertask-result
+  /api/protected/save-supertask-solution:
+    post:
+      description: Сохранить решение задачи
+      operationId: idOfSaveSupertaskSolutionEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/SaveSupertaskSolutionRequest'
+      responses:
+        "200":
+          $ref: '#/responses/saveSupertaskSolutionResponse'
+      tags:
+      - save-supertask-solution
   /api/protectes/logout:
     post:
       description: Logout user
@@ -328,6 +539,10 @@ responses:
     description: Save supertask success
     schema:
       $ref: '#/definitions/GetSupertaskResponse'
+  getSupertaskSolutionResponse:
+    description: Save supertask solution success
+    schema:
+      $ref: '#/definitions/GetSupertaskSolutionResponse'
   getUserSupertaskListResponse:
     description: Save supertask success
     schema:
@@ -344,6 +559,14 @@ responses:
     description: Save supertask success
     schema:
       $ref: '#/definitions/SaveSupertaskResponse'
+  saveSupertaskResultResponse:
+    description: Save supertask result success
+    schema:
+      $ref: '#/definitions/SaveSupertaskResultResponse'
+  saveSupertaskSolutionResponse:
+    description: Save supertask solution success
+    schema:
+      $ref: '#/definitions/SaveSupertaskSolutionResponse'
 schemes:
 - http
 securityDefinitions:
