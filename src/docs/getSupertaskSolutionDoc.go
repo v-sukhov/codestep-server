@@ -15,7 +15,7 @@ type getSupertaskSolutionRequestWrapper struct {
 	Body services.GetSupertaskSolutionRequest
 }
 
-// Save supertask solution success
+// Get supertask solution success
 // swagger:response getSupertaskSolutionResponse
 type getSupertaskSolutionWrapper struct {
 	// in:body

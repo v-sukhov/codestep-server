@@ -75,9 +75,19 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/save-supertask", services.SaveSupertask)
 	muxProtected.HandleFunc("/api/protected/get-supertask", services.GetSupertask)
 	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", services.GetUserSupertaskList)
+	// Supertask solution
 	muxProtected.HandleFunc("/api/protected/save-supertask-solution", services.SaveSupertaskSolution)
 	muxProtected.HandleFunc("/api/protected/get-supertask-solution", services.GetSupertaskSolution)
+	// Supertask result
 	muxProtected.HandleFunc("/api/protected/save-supertask-result", services.SaveSupertaskResult)
+	muxProtected.HandleFunc("/api/protected/get-supertask-result", services.GetSupertaskResult)
+	muxProtected.HandleFunc("/api/protected/get-supertask-all-tasks-results", services.GetSupertaskAllTasksResults)
+	// Contest
+	muxProtected.HandleFunc("/api/protected/save-contest", services.SaveContest)
+	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", services.AddSupertaskToContest)
+	muxProtected.HandleFunc("/api/protected/get-contest-supertasks-list", services.GetContestSupertasksList)
+	muxProtected.HandleFunc("/api/protected/get-user-contest-list", services.GetUserContestList)
+	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", services.RemoveSupertaskFromContest)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

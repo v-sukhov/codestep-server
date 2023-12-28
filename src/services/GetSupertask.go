@@ -10,7 +10,7 @@ package services
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -59,7 +59,7 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 
 	userId := r.Context().Value(security.ContextUserIdKey).(int32)
 
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
+	if body, err := io.ReadAll(r.Body); err != nil {
 		response = GetSupertaskResponse{
 			Success: false,
 			Message: "Body reading failed",

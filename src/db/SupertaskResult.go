@@ -18,6 +18,22 @@ type SupertaskResult struct {
 	SaveDTM                time.Time
 }
 
+type TaskResult struct {
+	TaskNum                int16     `json:"taskNum"`
+	SupertaskVersionNumber int32     `json:"supertaskVersionNumber"`
+	Passed                 bool      `json:"passed"`
+	Score                  int16     `json:"score"`
+	Tries                  int16     `json:"tries"`
+	SaveDTM                time.Time `json:"saveDTM"`
+}
+
+type SupertaskAllTasksResults struct {
+	SupertaskId int32
+	UserId      int32
+	ContestId   int32
+	TaskResults []TaskResult
+}
+
 /*
 	Сохраняет результат по задаче
 
@@ -172,6 +188,62 @@ func GetSupertaskResult(
 	result.UserId = userId
 	result.TaskNum = taskNum
 	result.ContestId = contestId
+
+	return
+}
+
+/*
+	Возвращает результаты решения всех задач суперзадачи по ключу
+		SUPERTASK_ID, USER_ID, CONTEST_ID
+*/
+
+func GetSupertaskAllTasksResults(
+	supertaskId int32,
+	userId int32,
+	contestId int32) (allTasksResult SupertaskAllTasksResults, err error) {
+
+	rows, err := db.Query(`
+			SELECT
+				task_num,
+				supertask_version_number,
+				passed,
+				score,
+				tries,
+				save_dtm
+			FROM
+				t_supertask_result
+			WHERE
+				supertask_id = $1 and
+				user_id = $2 and
+				contest_id = $3
+		`, supertaskId, userId, contestId)
+
+	defer rows.Close()
+
+	if err != nil {
+		return
+	}
+
+	allTasksResult.TaskResults = make([]TaskResult, 0)
+
+	for rows.Next() {
+		var taskResult TaskResult
+		if err = rows.Scan(
+			&taskResult.TaskNum,
+			&taskResult.SupertaskVersionNumber,
+			&taskResult.Passed,
+			&taskResult.Score,
+			&taskResult.Tries,
+			&taskResult.SaveDTM,
+		); err != nil {
+			return
+		}
+		allTasksResult.TaskResults = append(allTasksResult.TaskResults, taskResult)
+	}
+
+	allTasksResult.SupertaskId = supertaskId
+	allTasksResult.UserId = userId
+	allTasksResult.ContestId = contestId
 
 	return
 }
