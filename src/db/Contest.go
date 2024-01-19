@@ -23,11 +23,19 @@ type ContestWithRights struct {
 }
 
 type SupertaskInContestInfo struct {
-	SupertaskId   int32  `json:"supertaskId"`
-	VersionNumber int32  `json:"versionNumber"`
-	SupertaskName string `json:"supertaskName"`
-	SupertaskDesc string `json:"supertaskDesc"`
-	OrderNumber   int16  `json:"orderNumber"`
+	SupertaskId     int32  `json:"supertaskId"`
+	VersionNumber   int32  `json:"versionNumber"`
+	SupertaskName   string `json:"supertaskName"`
+	SupertaskDesc   string `json:"supertaskDesc"`
+	OrderNumber     int16  `json:"orderNumber"`
+	ContestLogoHref string `json:"supertaskLogoHref"`
+}
+
+type SupertaskInContestWithResults struct {
+	ContestId           int32                  `json:"contestId"`
+	SupertaskInfo       SupertaskInContestInfo `json:"supertaskInfo"`
+	TaskResults         []TaskResult           `json:"taskResults"`
+	SupertaskObjectJson string                 `json:"supertaskObjectJson"`
 }
 
 /*
@@ -319,9 +327,10 @@ func RemoveSupertaskFromContest(contestId int32, supertaskId int32) error {
 }
 
 /*
-Возвращает список суперзадач контеста
+Возвращает список суперзадач контеста,
+отсортированный в порядке order_number
 */
-func GetContestSupertasksList(contestId int32) (supertaskList []SupertaskInContestInfo, err error) {
+func GetContestSupertaskList(contestId int32) (supertaskList []SupertaskInContestInfo, err error) {
 	rows, err := db.Query(`
 		SELECT
 			cs.supertask_id,
@@ -361,4 +370,50 @@ func GetContestSupertasksList(contestId int32) (supertaskList []SupertaskInConte
 
 	return
 
+}
+
+/*
+Возвращает актуальную версию суперзадачи в контесте
+вместе с результатами данного пользователя
+*/
+func GetSupertaskInContestWithResults(contestId int32, supertaskId int32, userId int32) (supertaskInContest SupertaskInContestWithResults, err error) {
+
+	supertaskInContest.ContestId = contestId
+
+	err = db.QueryRow(`
+					SELECT
+						cs.supertask_id,
+						cs.supertask_version_number,
+						sv.supertask_name,
+						sv.supertask_desc,
+						cs.order_number,
+						sv.supertask_object_json
+					FROM
+						t_contest_supertask cs join
+						t_supertask_version sv on cs.supertask_id = sv.supertask_id and cs.supertask_version_number = sv.version_number
+					WHERE 
+						cs.contest_id = $1 and
+						cs.supertask_id = $2
+					`, contestId, supertaskId).Scan(
+		&supertaskInContest.SupertaskInfo.SupertaskId,
+		&supertaskInContest.SupertaskInfo.VersionNumber,
+		&supertaskInContest.SupertaskInfo.SupertaskName,
+		&supertaskInContest.SupertaskInfo.SupertaskDesc,
+		&supertaskInContest.SupertaskInfo.OrderNumber,
+		&supertaskInContest.SupertaskObjectJson,
+	)
+
+	if err != nil {
+		return
+	}
+
+	allTasksResults, err := GetSupertaskAllTasksResults(contestId, supertaskId, userId)
+
+	if err != nil {
+		return
+	}
+
+	supertaskInContest.TaskResults = allTasksResults.TaskResults
+
+	return
 }

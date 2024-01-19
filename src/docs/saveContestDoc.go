@@ -6,6 +6,7 @@ import (
 
 // swagger:route POST /api/protected/save-contest save-contest idOfSaveContestEndpoint
 // Сохранить контест
+// Если contestId = 0, значит создаёт новый
 // responses:
 //   200: saveContest
 

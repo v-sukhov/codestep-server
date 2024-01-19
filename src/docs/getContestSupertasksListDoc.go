@@ -4,20 +4,20 @@ import (
 	services "codestep/services"
 )
 
-// swagger:route POST /api/protected/get-contest-supertasks-list get-contest-supertasks-list idOfGetContestSupertasksListEndpoint
-// Возвращает список суперзадач контеста
+// swagger:route POST /api/protected/get-contest-supertask-list get-contest-supertask-list idOfGetContestSupertaskListEndpoint
+// Возвращает список суперзадач контеста, отсортированный в порядке order_number
 // responses:
-//   200: getContestSupertasksListResponse
+//   200: getContestSupertaskListResponse
 
-// swagger:parameters idOfGetContestSupertasksListEndpoint
-type getContestSupertasksListRequestWrapper struct {
+// swagger:parameters idOfGetContestSupertaskListEndpoint
+type getContestSupertaskListRequestWrapper struct {
 	// in:body
-	Body services.GetContestSupertasksListRequest
+	Body services.GetContestSupertaskListRequest
 }
 
-// Get contest supertask list
-// swagger:response getContestSupertasksListResponse
-type getContestSupertasksListResponseWrapper struct {
+// Get contest supertask list sorted by order_number
+// swagger:response getContestSupertaskListResponse
+type getContestSupertaskListResponseWrapper struct {
 	// in:body
-	Body services.GetContestSupertasksListResponse
+	Body services.GetContestSupertaskListResponse
 }

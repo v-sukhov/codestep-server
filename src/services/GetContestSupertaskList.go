@@ -9,37 +9,37 @@ import (
 	"net/http"
 )
 
-type GetContestSupertasksListRequest struct {
+type GetContestSupertaskListRequest struct {
 	ContestId int32 `json:"contestId"`
 }
 
-type GetContestSupertasksListData struct {
-	SupertasksList []db.SupertaskInContestInfo `json:"supertasksList"`
+type GetContestSupertaskListData struct {
+	SupertasksList []db.SupertaskInContestInfo `json:"supertaskList"`
 }
 
-type GetContestSupertasksListResponse struct {
-	Success bool                         `json:"success"`
-	Message string                       `json:"message"`
-	Data    GetContestSupertasksListData `json:"data"`
+type GetContestSupertaskListResponse struct {
+	Success bool                        `json:"success"`
+	Message string                      `json:"message"`
+	Data    GetContestSupertaskListData `json:"data"`
 }
 
-func GetContestSupertasksList(w http.ResponseWriter, r *http.Request) {
+func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 
-	var request GetContestSupertasksListRequest
-	var response GetContestSupertasksListResponse
+	var request GetContestSupertaskListRequest
+	var response GetContestSupertaskListResponse
 
 	w.Header().Set("Content-Type", "application/json")
 
 	userId := r.Context().Value(security.ContextUserIdKey).(int32)
 
 	if body, err := io.ReadAll(r.Body); err != nil {
-		response = GetContestSupertasksListResponse{
+		response = GetContestSupertaskListResponse{
 			Success: false,
 			Message: "Body reading failed",
 		}
 	} else {
 		if err := json.Unmarshal(body, &request); err != nil {
-			response = GetContestSupertasksListResponse{
+			response = GetContestSupertaskListResponse{
 				Success: false,
 				Message: "JSON decoding failed",
 			}
@@ -47,27 +47,27 @@ func GetContestSupertasksList(w http.ResponseWriter, r *http.Request) {
 			userContestRights, err := db.GetUserContestRights(userId, request.ContestId)
 
 			if err != nil {
-				response = GetContestSupertasksListResponse{
+				response = GetContestSupertaskListResponse{
 					Success: false,
 					Message: "JSON decoding failed",
 				}
 			} else if userContestRights == 0 {
-				response = GetContestSupertasksListResponse{
+				response = GetContestSupertaskListResponse{
 					Success: false,
 					Message: "User does not have rights on contest",
 				}
 			} else {
-				supertasksList, err := db.GetContestSupertasksList(request.ContestId)
+				supertasksList, err := db.GetContestSupertaskList(request.ContestId)
 				if err != nil {
-					response = GetContestSupertasksListResponse{
+					response = GetContestSupertaskListResponse{
 						Success: false,
 						Message: err.Error(),
 					}
 				} else {
-					data := GetContestSupertasksListData{
+					data := GetContestSupertaskListData{
 						SupertasksList: supertasksList,
 					}
-					response = GetContestSupertasksListResponse{
+					response = GetContestSupertaskListResponse{
 						Success: true,
 						Message: "OK",
 						Data:    data,

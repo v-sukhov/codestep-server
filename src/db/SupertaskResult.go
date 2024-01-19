@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -47,16 +48,17 @@ func SaveSupertaskResult(supertaskResult *SupertaskResult) error {
 	/*
 		Пытается сначала выполнить простой UPDATE без транзакции - этим запросом чаще всего работа и будет ограничиваться.
 		Если не получилось - открывает транзакцию и снова пытается выполнить UPDATE, и уже если опять не получилось - делает вставку.
+		Реального обновления не должно происходить, если количество попыток в обновлении меньше последнего записанного.
 	*/
 
 	updateQuery := `
-					UPDATE T_SUPERTASK_RESULT
+					UPDATE T_SUPERTASK_RESULT T
 					SET
-						SUPERTASK_VERSION_NUMBER = $5,
-						PASSED = $6,
-						SCORE = $7,
-						TRIES = $8,
-						SAVE_DTM = CURRENT_TIMESTAMP
+						SUPERTASK_VERSION_NUMBER = (CASE WHEN T.TRIES < $8 THEN $5 ELSE SUPERTASK_VERSION_NUMBER END),
+						PASSED = (CASE WHEN T.TRIES < $8 THEN $6 ELSE PASSED END),
+						SCORE = (CASE WHEN T.TRIES < $8 THEN $7 ELSE SCORE END),
+						TRIES = (CASE WHEN T.TRIES < $8 THEN $8 ELSE TRIES END),
+						SAVE_DTM = (CASE WHEN T.TRIES < $8 THEN CURRENT_TIMESTAMP ELSE SAVE_DTM END)
 					WHERE
 						SUPERTASK_ID = $1 AND
 						USER_ID = $2 AND
@@ -152,6 +154,7 @@ func SaveSupertaskResult(supertaskResult *SupertaskResult) error {
 /*
 	Возвращает результат решения задачи по ключу
 		SUPERTASK_ID, USER_ID, TASK_NUM, CONTEST_ID
+	Если сохранённого результата по ключу нет, возвращает нулевой результат
 */
 
 func GetSupertaskResult(
@@ -184,6 +187,13 @@ func GetSupertaskResult(
 		&result.SaveDTM,
 	)
 
+	if err == sql.ErrNoRows {
+		result.Passed = false
+		result.Score = 0
+		result.Tries = 0
+		err = nil
+	}
+
 	result.SupertaskId = supertaskId
 	result.UserId = userId
 	result.TaskNum = taskNum
@@ -198,9 +208,10 @@ func GetSupertaskResult(
 */
 
 func GetSupertaskAllTasksResults(
+	contestId int32,
 	supertaskId int32,
 	userId int32,
-	contestId int32) (allTasksResult SupertaskAllTasksResults, err error) {
+) (allTasksResult SupertaskAllTasksResults, err error) {
 
 	rows, err := db.Query(`
 			SELECT

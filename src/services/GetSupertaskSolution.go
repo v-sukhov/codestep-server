@@ -3,6 +3,7 @@ package services
 import (
 	"codestep/db"
 	"codestep/security"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"log"
@@ -19,6 +20,7 @@ type GetSupertaskSolutionRequest struct {
 }
 
 type GetSupertaskSolutionData struct {
+	Exists                 bool      `json:"exists"`
 	SupertaskId            int32     `json:"supertaskId"`
 	TaskNum                int16     `json:"taskNum"`
 	SupertaskVersionNumber int32     `json:"supertaskVersionNumber"`
@@ -65,7 +67,7 @@ func GetSupertaskSolution(w http.ResponseWriter, r *http.Request) {
 				request.SolutionKey,
 			)
 
-			if err != nil {
+			if err != nil && err != sql.ErrNoRows {
 				response = GetSupertaskSolutionResponse{
 					Success: false,
 					Message: err.Error(),
@@ -75,6 +77,7 @@ func GetSupertaskSolution(w http.ResponseWriter, r *http.Request) {
 					Success: true,
 					Message: "",
 					Data: GetSupertaskSolutionData{
+						Exists:                 (err == nil),
 						SupertaskId:            solution.SupertaskId,
 						TaskNum:                solution.TaskNum,
 						SupertaskVersionNumber: solution.SupertaskVersionNumber,

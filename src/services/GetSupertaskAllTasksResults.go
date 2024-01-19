@@ -10,13 +10,13 @@ import (
 )
 
 type GetSupertaskAllTasksResultsRequest struct {
-	SupertaskId int32 `json:"supertaskId"`
 	ContestId   int32 `json:"contestId"`
+	SupertaskId int32 `json:"supertaskId"`
 }
 
 type GetSupertaskAllTasksResultsData struct {
-	SupertaskId  int32           `json:"supertaskId"`
 	ContestId    int32           `json:"contestId"`
+	SupertaskId  int32           `json:"supertaskId"`
 	TasksResults []db.TaskResult `json:"tasksResults"`
 }
 
@@ -47,9 +47,9 @@ func GetSupertaskAllTasksResults(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			allResults, err := db.GetSupertaskAllTasksResults(
+				request.ContestId,
 				request.SupertaskId,
 				userId,
-				request.ContestId,
 			)
 
 			if err != nil {

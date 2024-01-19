@@ -58,6 +58,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/", helloService)
+
 	// Login
 	mux.HandleFunc("/api/login", security.Login)
 
@@ -85,9 +87,10 @@ func main() {
 	// Contest
 	muxProtected.HandleFunc("/api/protected/save-contest", services.SaveContest)
 	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", services.AddSupertaskToContest)
-	muxProtected.HandleFunc("/api/protected/get-contest-supertasks-list", services.GetContestSupertasksList)
+	muxProtected.HandleFunc("/api/protected/get-contest-supertask-list", services.GetContestSupertaskList)
 	muxProtected.HandleFunc("/api/protected/get-user-contest-list", services.GetUserContestList)
 	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", services.RemoveSupertaskFromContest)
+	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", services.GetSupertaskInContestWithResults)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

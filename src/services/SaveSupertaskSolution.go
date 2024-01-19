@@ -54,6 +54,7 @@ func SaveSupertaskSolution(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			err := db.SaveSupertaskSolution(&db.SupertaskSolution{
+				ContestId:              request.ContestId,
 				SupertaskId:            request.SupertaskId,
 				UserId:                 userId,
 				SupertaskVersionNumber: request.SupertaskVersionNumber,

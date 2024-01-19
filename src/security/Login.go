@@ -2,7 +2,7 @@ package security
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"net/http"
@@ -13,6 +13,21 @@ import (
 type LoginRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
+}
+
+type UserInfo struct {
+	UserId      int32  `json:"userId"`
+	UserLogin   string `json:"userLogin"`
+	DisplayName string `json:"userDisplayName"`
+	UserType    int    `json:"userType"`
+	IsAdmin     bool   `json:"roleAdmin"`
+	IsDeveloper bool   `json:"roleDeveloper"`
+	IsJury      bool   `json:"roleJury"`
+}
+
+type LoginResponseData struct {
+	Token    string   `json:"token"`
+	UserInfo UserInfo `json:"userInfo"`
 }
 
 type LoginResponse struct {
@@ -26,7 +41,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	var response LoginResponse
 
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
+	if body, err := io.ReadAll(r.Body); err != nil {
 		response = LoginResponse{
 			Success: false,
 			Message: "Body reading failed",
