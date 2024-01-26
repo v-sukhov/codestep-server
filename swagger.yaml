@@ -420,15 +420,23 @@ definitions:
     x-go-package: codestep/security
   LoginResponse:
     properties:
+      data:
+        $ref: '#/definitions/LoginResponseData'
       message:
         type: string
         x-go-name: Message
       success:
         type: boolean
         x-go-name: Success
+    type: object
+    x-go-package: codestep/security
+  LoginResponseData:
+    properties:
       token:
         type: string
         x-go-name: Token
+      userInfo:
+        $ref: '#/definitions/UserInfo'
     type: object
     x-go-package: codestep/security
   LogoutRequest:
@@ -776,6 +784,33 @@ definitions:
         x-go-name: Tries
     type: object
     x-go-package: codestep/db
+  UserInfo:
+    properties:
+      roleAdmin:
+        type: boolean
+        x-go-name: IsAdmin
+      roleDeveloper:
+        type: boolean
+        x-go-name: IsDeveloper
+      roleJury:
+        type: boolean
+        x-go-name: IsJury
+      userDisplayName:
+        type: string
+        x-go-name: DisplayName
+      userId:
+        format: int32
+        type: integer
+        x-go-name: UserId
+      userLogin:
+        type: string
+        x-go-name: UserLogin
+      userType:
+        format: int64
+        type: integer
+        x-go-name: UserType
+    type: object
+    x-go-package: codestep/security
 host: localhost
 info:
   description: Documentation of codestep JSON API.
@@ -859,7 +894,7 @@ paths:
       - get-supertask-all-tasks-results
   /api/protected/get-supertask-in-contest-with-results:
     post:
-      description: Получить данные суперзадачи с результатами запрашивающего пользователя
+      description: Получить данные актуальной версии суперзадачи с результатами запрашивающего пользователя
       operationId: idOfGetSupertaskInContestWithResultsEndpoint
       parameters:
       - in: body

@@ -396,6 +396,7 @@ func GetUserSupertaskList(userId int32) ([]SupertaskLastVersionInfo, error) {
 	}
 
 	var supertaskList []SupertaskLastVersionInfo
+	supertaskList = make([]SupertaskLastVersionInfo, 0)
 
 	for rows.Next() {
 		var supertaskInfo SupertaskLastVersionInfo

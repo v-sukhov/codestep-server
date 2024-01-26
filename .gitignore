@@ -19,3 +19,6 @@ build/security
 
 # configuration file
 build/server.conf
+
+#temp files
+build/tmp

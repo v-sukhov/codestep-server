@@ -47,6 +47,9 @@ func main() {
 	security.JwtTokenLifetimeMinute = p.MustGetInt("jwt_token_lifetime_minute")
 	security.JwtRegisterTokenLifetimeMinute = p.MustGetInt("jwt_register_token_lifetime_minute")
 
+	// get dir path
+	services.TmpDirPath = p.MustGetString("tmp_dir")
+
 	// Logging settings
 	if p.GetString("cors_log_http", "no") == "yes" {
 		CorsLogHttp = true
@@ -91,6 +94,8 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/get-user-contest-list", services.GetUserContestList)
 	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", services.RemoveSupertaskFromContest)
 	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", services.GetSupertaskInContestWithResults)
+	// User managment
+	muxProtected.HandleFunc("/api/protected/upload-create-user-list", services.CreateMultipleUsers)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

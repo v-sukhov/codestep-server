@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type UserInfo struct {
+type UserBasicInfo struct {
 	UserId      int32
 	UserLogin   string
 	DisplayName string
@@ -20,8 +20,8 @@ type UserRights struct {
 	IsJury      bool
 }
 
-func AuthenticateUser(login string, password string) (UserInfo, bool) {
-	userInfo := UserInfo{}
+func AuthenticateUser(login string, password string) (UserBasicInfo, bool) {
+	userInfo := UserBasicInfo{}
 	ok := true
 	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE login = $1 and password_sha256 = sha256($2)",
 		login, EncryptionSaltWord+password).
@@ -29,7 +29,7 @@ func AuthenticateUser(login string, password string) (UserInfo, bool) {
 	if err != nil {
 		ok = false
 		if err != sql.ErrNoRows {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	} else {
 		ok = true
@@ -38,8 +38,8 @@ func AuthenticateUser(login string, password string) (UserInfo, bool) {
 	return userInfo, ok
 }
 
-func FindUserByEmail(email string) (UserInfo, bool) {
-	userInfo := UserInfo{}
+func FindUserByEmail(email string) (UserBasicInfo, bool) {
+	userInfo := UserBasicInfo{}
 	ok := true
 	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE LOWER(email) = $1 ",
 		strings.ToLower(email)).
@@ -48,7 +48,7 @@ func FindUserByEmail(email string) (UserInfo, bool) {
 	if err != nil {
 		ok = false
 		if err != sql.ErrNoRows {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	} else {
 		ok = true
@@ -57,8 +57,8 @@ func FindUserByEmail(email string) (UserInfo, bool) {
 	return userInfo, ok
 }
 
-func FindUserByLogin(login string) (UserInfo, bool) {
-	userInfo := UserInfo{}
+func FindUserByLogin(login string) (UserBasicInfo, bool) {
+	userInfo := UserBasicInfo{}
 	ok := true
 	err := db.QueryRow("SELECT user_id, login, COALESCE(display_name, '') display_name, user_type FROM t_user WHERE LOWER(login) = $1 ",
 		strings.ToLower(login)).
@@ -67,7 +67,7 @@ func FindUserByLogin(login string) (UserInfo, bool) {
 	if err != nil {
 		ok = false
 		if err != sql.ErrNoRows {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	} else {
 		ok = true

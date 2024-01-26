@@ -15,7 +15,8 @@ func CorsHandler(h http.Handler) http.Handler {
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization , Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 		if r.Method != http.MethodOptions {
 			h.ServeHTTP(w, r)
 		}
