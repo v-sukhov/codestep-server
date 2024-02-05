@@ -61,7 +61,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", helloService)
+	//mux.HandleFunc("/", helloService)
+
+	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
 	// Login
 	mux.HandleFunc("/api/login", security.Login)
