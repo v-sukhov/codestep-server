@@ -1,0 +1,12 @@
+[Unit]
+Description=codestep
+
+[Service]
+ExecStart=/var/codestep/codestep-server
+WorkingDirectory=/var/codestep
+User=codestep
+TimeouSec=30min
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

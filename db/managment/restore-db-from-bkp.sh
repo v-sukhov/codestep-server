@@ -1,14 +1,19 @@
 #!/bin/bash
 
-if [$1 -eq 0]; then
-	echo Restoring dump not found
+if [ $# -eq 0 ]; then
+    echo Restoring dump file is not set. Exiting
+    exit -1
+fi
+
+if ! [ -f $1 ]; then
+	echo Restoring dump file not found. Exiting
 	exit -1
 fi
 
 echo SAVING BACKUP
 sudo -u postgres pg_dump -Fc codestep_db > dump-codestep_db-$(date +'%Y-%m-%d-%H-%M-%S')
 
-if [$? -neq 0]; then
+if [ $? -ne 0 ]; then
 	echo Making backup failed. Exiting
 	exit -1
 fi
@@ -16,14 +21,14 @@ fi
 echo DROPING DATABASE
 psql --host localhost --username postgres --password -c "DROP DATABASE codestep_db;"
 
-if [$? -neq 0]; then
+if [ $? -ne 0 ]; then
 	echo Droping codestep_db database failed. Exiting
 	exit -1
 fi
 
 echo CREATING DATABASE
 
-if [$? -neq 0]; then
+if [ $? -ne 0 ]; then
 	echo Creating codestep_db database failed. Exiting
 	exit -1
 fi
