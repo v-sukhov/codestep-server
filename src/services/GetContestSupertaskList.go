@@ -57,7 +57,7 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 					Message: "User does not have rights on contest",
 				}
 			} else {
-				supertasksList, err := db.GetContestSupertaskList(request.ContestId)
+				supertaskList, err := db.GetContestSupertaskList(request.ContestId)
 				if err != nil {
 					response = GetContestSupertaskListResponse{
 						Success: false,
@@ -65,7 +65,7 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 					}
 				} else {
 					data := GetContestSupertaskListData{
-						SupertasksList: supertasksList,
+						SupertasksList: supertaskList,
 					}
 					response = GetContestSupertaskListResponse{
 						Success: true,
