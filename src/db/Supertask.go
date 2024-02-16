@@ -16,7 +16,11 @@ type SupertaskVersion struct {
 	SaveDTM             time.Time
 	SupertaskName       string
 	SupertaskDesc       string
+	SupertaskLogoHref   string
 	SupertaskObjectJson string
+	TasksNum            int16
+	MaxTotalScore       int32
+	MaxTaskScore        string
 }
 
 type SupertaskLastVersionInfo struct {
@@ -29,6 +33,7 @@ type SupertaskLastVersionInfo struct {
 	SupertaskCreateDTM     time.Time `json:"supertaskCreateDTM"`
 	SupertaskName          string    `json:"supertaskName"`
 	SupertaskDesc          string    `json:"supertaskDesc"`
+	SupertaskLogoHref      string    `json:"supertaskLogoHref"`
 	VersionAuthorUserName  string    `json:"versionAuthorUserName"`
 	ParentVersionNumber    string    `json:"parentVersionNumber"`
 	Commited               bool      `json:"commited"`
@@ -119,11 +124,15 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 							SAVE_DTM,
 							SUPERTASK_NAME,
 							SUPERTASK_DESC,
-							SUPERTASK_OBJECT_JSON
+							SUPERTASK_LOGO_HREF,
+							SUPERTASK_OBJECT_JSON,
+							TASKS_NUM,
+							MAX_TOTAL_SCORE,
+							MAX_TASK_SCORE
 						  )
 						  VALUES
 						  (
-							$1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9
+							$1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9, $10, $11, $12, $13
 						  )`,
 			supertaskVersion.SupertaskId,
 			newVersionNumber,
@@ -133,7 +142,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			supertaskVersion.CommitMessage,
 			supertaskVersion.SupertaskName,
 			supertaskVersion.SupertaskDesc,
+			supertaskVersion.SupertaskLogoHref,
 			supertaskVersion.SupertaskObjectJson,
+			supertaskVersion.TasksNum,
+			supertaskVersion.MaxTotalScore,
+			supertaskVersion.MaxTaskScore,
 		)
 
 		if err != nil {
@@ -172,7 +185,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 				COMMIT_MESSAGE VARCHAR(512),
 				SUPERTASK_NAME VARCHAR(256),
 				SUPERTASK_DESC VARCHAR(256),
-				SUPERTASK_OBJECT_JSON TEXT
+				SUPERTASK_LOGO_HREF VARCHAR(512),
+				SUPERTASK_OBJECT_JSON TEXT,
+				TASKS_NUM INTEGER,
+				MAX_TOTAL_SCORE INTEGER,
+				MAX_TASK_SCORE VARCHAR(256)
 				)
 		`); err != nil {
 			return err
@@ -187,8 +204,12 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 				COMMIT_MESSAGE,
 				SUPERTASK_NAME,
 				SUPERTASK_DESC,
-				SUPERTASK_OBJECT_JSON
-		) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+				SUPERTASK_LOGO_HREF,
+				SUPERTASK_OBJECT_JSON,
+				TASKS_NUM,
+				MAX_TOTAL_SCORE,
+				MAX_TASK_SCORE
+		) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 			supertaskVersion.SupertaskId,
 			supertaskVersion.VersionNumber,
 			supertaskVersion.ParentVersionNumber,
@@ -197,7 +218,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			supertaskVersion.CommitMessage,
 			supertaskVersion.SupertaskName,
 			supertaskVersion.SupertaskDesc,
+			supertaskVersion.SupertaskLogoHref,
 			supertaskVersion.SupertaskObjectJson,
+			supertaskVersion.TasksNum,
+			supertaskVersion.MaxTotalScore,
+			supertaskVersion.MaxTaskScore,
 		); err != nil {
 			return err
 		}
@@ -215,7 +240,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 			SAVE_DTM = NOW(),
 			SUPERTASK_NAME = new_data.SUPERTASK_NAME,
 			SUPERTASK_DESC = new_data.SUPERTASK_DESC,
-			SUPERTASK_OBJECT_JSON = new_data.SUPERTASK_OBJECT_JSON
+			SUPERTASK_LOGO_HREF = new_data.SUPERTASK_LOGO_HREF,
+			SUPERTASK_OBJECT_JSON = new_data.SUPERTASK_OBJECT_JSON,
+			TASKS_NUM = new_data.TASKS_NUM,
+			MAX_TOTAL_SCORE = new_data.MAX_TOTAL_SCORE,
+			MAX_TASK_SCORE = new_data.MAX_TASK_SCORE
 		WHEN NOT MATCHED THEN 
 		INSERT 
 			(
@@ -228,7 +257,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 				SAVE_DTM,
 				SUPERTASK_NAME,
 				SUPERTASK_DESC,
-				SUPERTASK_OBJECT_JSON
+				SUPERTASK_LOGO_HREF,
+				SUPERTASK_OBJECT_JSON,
+				TASKS_NUM,
+				MAX_TOTAL_SCORE,
+				MAX_TASK_SCORE
 			) 
 			VALUES 
 			(
@@ -241,7 +274,11 @@ func SaveSupertaskVersion(supertaskVersion *SupertaskVersion) error {
 				NOW(),
 				new_data.SUPERTASK_NAME,
 				new_data.SUPERTASK_DESC,
-				new_data.SUPERTASK_OBJECT_JSON
+				new_data.SUPERTASK_LOGO_HREF,
+				new_data.SUPERTASK_OBJECT_JSON,
+				new_data.TASKS_NUM,
+				new_data.MAX_TOTAL_SCORE,
+				new_data.MAX_TASK_SCORE
 			)
 		`); err != nil {
 			return err
@@ -272,7 +309,11 @@ func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32) (super
 						save_dtm,
 						supertask_name,
 						supertask_desc,
-						supertask_object_json
+						supertask_logo_href,
+						supertask_object_json,
+						tasks_num,
+						max_total_score,
+						max_task_score
 					FROM
 						t_supertask_version
 					WHERE
@@ -287,7 +328,12 @@ func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32) (super
 			&supertaskVersion.SaveDTM,
 			&supertaskVersion.SupertaskName,
 			&supertaskVersion.SupertaskDesc,
-			&supertaskVersion.SupertaskObjectJson)
+			&supertaskVersion.SupertaskLogoHref,
+			&supertaskVersion.SupertaskObjectJson,
+			&supertaskVersion.TasksNum,
+			&supertaskVersion.MaxTotalScore,
+			&supertaskVersion.MaxTaskScore,
+		)
 
 	return
 }
@@ -305,7 +351,11 @@ func GetSupertaskWorkVersion(supertaskId int32, AuthorUserId int32) (supertaskVe
 						save_dtm,
 						supertask_name,
 						supertask_desc,
-						supertask_object_json
+						supertask_logo_href,
+						supertask_object_json,
+						tasks_num,
+						max_total_score,
+						max_task_score
 					FROM
 						t_supertask_version
 					WHERE
@@ -320,7 +370,12 @@ func GetSupertaskWorkVersion(supertaskId int32, AuthorUserId int32) (supertaskVe
 			&supertaskVersion.SaveDTM,
 			&supertaskVersion.SupertaskName,
 			&supertaskVersion.SupertaskDesc,
-			&supertaskVersion.SupertaskObjectJson)
+			&supertaskVersion.SupertaskLogoHref,
+			&supertaskVersion.SupertaskObjectJson,
+			&supertaskVersion.TasksNum,
+			&supertaskVersion.MaxTotalScore,
+			&supertaskVersion.MaxTaskScore,
+		)
 
 	return
 }
@@ -367,6 +422,7 @@ func GetUserSupertaskList(userId int32) ([]SupertaskLastVersionInfo, error) {
 						ts.create_dtm as supertask_create_dtm,
 						coalesce(stu.supertask_name, stc.supertask_name, 'Новая задача') as supertask_name,
 						coalesce(stu.supertask_desc, stc.supertask_desc, 'В задаче отсутствуют закоммиченные версии и Ваша рабочая версия') as supertask_desc,
+						coalesce(stu.supertask_logo_href, stc.supertask_logo_href, '') as supertask_logo_href,
 						coalesce(u.display_name, uc.display_name, '') as version_author_user_name,
 						coalesce(stu.parent_version_number , stc.parent_version_number, 0) as parent_version_number,
 						coalesce(stu.commited, stc.commited, false) as commited,
@@ -389,11 +445,11 @@ func GetUserSupertaskList(userId int32) ([]SupertaskLastVersionInfo, error) {
 						coalesce(stu.save_dtm, stc.save_dtm) desc	
 				`, userId)
 
-	defer rows.Close()
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	var supertaskList []SupertaskLastVersionInfo
 	supertaskList = make([]SupertaskLastVersionInfo, 0)
@@ -410,6 +466,7 @@ func GetUserSupertaskList(userId int32) ([]SupertaskLastVersionInfo, error) {
 			&supertaskInfo.SupertaskCreateDTM,
 			&supertaskInfo.SupertaskName,
 			&supertaskInfo.SupertaskDesc,
+			&supertaskInfo.SupertaskLogoHref,
 			&supertaskInfo.VersionAuthorUserName,
 			&supertaskInfo.ParentVersionNumber,
 			&supertaskInfo.Commited,

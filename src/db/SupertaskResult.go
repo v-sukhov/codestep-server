@@ -111,6 +111,10 @@ func SaveSupertaskResult(supertaskResult *SupertaskResult) error {
 
 		rowsAffected, err := res.RowsAffected()
 
+		if err != nil {
+			return err
+		}
+
 		if rowsAffected == 0 {
 			_, err = tx.Exec(`
 						INSERT INTO T_SUPERTASK_RESULT

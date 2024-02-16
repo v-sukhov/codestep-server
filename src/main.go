@@ -61,9 +61,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	//mux.HandleFunc("/", helloService)
+	// Static files (frontend and static images)
 
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
+	mux.Handle("/contests", http.RedirectHandler("/", http.StatusSeeOther))
+	mux.Handle("/development", http.RedirectHandler("/", http.StatusSeeOther))
+	mux.Handle("/users", http.RedirectHandler("/", http.StatusSeeOther))
 
 	// Login
 	mux.HandleFunc("/api/login", security.Login)
@@ -73,9 +76,13 @@ func main() {
 	mux.HandleFunc("/api/validate-register-code", security.ValidateRegisterCode)
 	mux.HandleFunc("/api/resume-register", security.ResumeRegister)
 
-	// protected multiplexer
+	// Data files (contest logo, supertask logo, supertask images: sprites, backgrounds etc.)
+	mux.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("./files"))))
+
+	// protected multiplexer for api
 
 	muxProtected := http.NewServeMux()
+
 	// Logout
 	muxProtected.HandleFunc("/api/protected/logout", security.Logout)
 	// Supertask
@@ -96,6 +103,8 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/get-user-contest-list", services.GetUserContestList)
 	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", services.RemoveSupertaskFromContest)
 	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", services.GetSupertaskInContestWithResults)
+	muxProtected.HandleFunc("/api/protected/get-contest-results", services.GetContestResults)
+	muxProtected.HandleFunc("/api/protected/get-contest-results-file", services.GetContestResultsFile)
 	// User managment
 	muxProtected.HandleFunc("/api/protected/upload-create-user-list", services.CreateMultipleUsers)
 

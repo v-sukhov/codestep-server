@@ -156,6 +156,9 @@ definitions:
         format: int32
         type: integer
         x-go-name: SupertaskId
+      supertaskLogoHref:
+        type: string
+        x-go-name: SupertaskLogoHref
       supertaskName:
         type: string
         x-go-name: SupertaskName
@@ -677,7 +680,7 @@ definitions:
         x-go-name: SupertaskId
       supertaskLogoHref:
         type: string
-        x-go-name: ContestLogoHref
+        x-go-name: SupertaskLogoHref
       supertaskName:
         type: string
         x-go-name: SupertaskName
@@ -742,6 +745,9 @@ definitions:
         format: int32
         type: integer
         x-go-name: SupertaskId
+      supertaskLogoHref:
+        type: string
+        x-go-name: SupertaskLogoHref
       supertaskName:
         type: string
         x-go-name: SupertaskName
@@ -786,13 +792,13 @@ definitions:
     x-go-package: codestep/db
   UserInfo:
     properties:
-      roleAdmin:
+      isAdmin:
         type: boolean
         x-go-name: IsAdmin
-      roleDeveloper:
+      isDeveloper:
         type: boolean
         x-go-name: IsDeveloper
-      roleJury:
+      isJury:
         type: boolean
         x-go-name: IsJury
       userDisplayName:
@@ -1041,6 +1047,15 @@ paths:
           $ref: '#/responses/saveSupertaskSolutionResponse'
       tags:
       - save-supertask-solution
+  /api/protected/upload-create-user-list:
+    post:
+      description: Позволяет загрузить файл со списком логинов для создания пользователей. Каждый логин - в отдельной строке. Логины состоят из символов a-z, 0-9, - и _
+      operationId: idOfUploadCreateUserListEndpoint
+      responses:
+        "200":
+          $ref: '#/responses/uploadCreateUserListResponse'
+      tags:
+      - upload-create-user-list
   /api/protectes/logout:
     post:
       description: Logout user
@@ -1123,6 +1138,8 @@ responses:
     description: Save supertask solution success
     schema:
       $ref: '#/definitions/SaveSupertaskSolutionResponse'
+  uploadCreateUserListResponse:
+    description: Возвращает файл со списком логин/пароль
 schemes:
 - http
 securityDefinitions:

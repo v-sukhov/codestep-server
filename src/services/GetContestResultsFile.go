@@ -1,0 +1,115 @@
+package services
+
+import (
+	"codestep/db"
+	"codestep/security"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+type GetContestResultsFileRequest struct {
+	ContestId int32 `json:"contestId"`
+}
+
+func GetContestResultsFile(w http.ResponseWriter, r *http.Request) {
+	var request GetContestResultsRequest
+
+	w.Header().Set("Content-Type", "application/json")
+
+	userId := r.Context().Value(security.ContextUserIdKey).(int32)
+
+	success := true
+	message := ""
+	var results db.ContestResults
+
+	if body, err := io.ReadAll(r.Body); err != nil {
+		success = false
+		message = "Body reading failed"
+	} else {
+		if err := json.Unmarshal(body, &request); err != nil {
+			success = false
+			message = "JSON decoding failed"
+		} else {
+			userRights, err := db.GetUserRights(userId)
+
+			if err != nil {
+				success = false
+				message = err.Error()
+			} else if !userRights.IsAdmin {
+				success = false
+				message = "User does not have admin rights to request contest result"
+			} else {
+				results, err = db.GetContestResults(request.ContestId)
+
+				if err != nil {
+					success = false
+					message = err.Error()
+				} else {
+					success = true
+				}
+			}
+		}
+	}
+
+	answerFilename := fmt.Sprintf("contest-results-%d.txt", request.ContestId)
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename=\""+answerFilename+"\"")
+
+	var bytes []byte
+
+	if !success {
+		bytes = []byte(message)
+	} else {
+		bytes = printContestResultsToCSV(results)
+	}
+
+	w.Write(bytes)
+
+}
+
+func appendContestResultRowToCSV(bytes []byte, result db.ContestUserResult) []byte {
+	var res []byte
+
+	res = fmt.Appendf(res, "%s", result.UserLogin)
+
+	for i, st := range result.SupertaskScore {
+		for j, t := range st {
+			passedSign := ""
+			if result.SupertaskPassed[i][j] {
+				passedSign = "+"
+			}
+			res = fmt.Appendf(res, "\t%s%d(%d)", passedSign, t, result.SupertaskTries[i][j])
+		}
+	}
+
+	res = fmt.Appendf(res, "\t%d\t%d\t%d\n", result.TotalScore, result.TotalPassed, result.TotalTries)
+
+	return res
+}
+
+func printContestResultsToCSV(results db.ContestResults) []byte {
+	var bytes []byte
+
+	for _, e := range results.Errors {
+		bytes = fmt.Appendf(bytes, "%s\n", e)
+	}
+
+	bytes = fmt.Appendf(bytes, "login")
+
+	for _, name := range results.SupertaskNames {
+		bytes = fmt.Appendf(bytes, "\t%s", name)
+	}
+
+	bytes = fmt.Appendf(bytes, "\ttotal_score\ttotal_passed\ttotal_tries\n")
+
+	bytes = appendContestResultRowToCSV(bytes, results.MaxPossibleResult)
+
+	for _, ur := range results.UserResults {
+		bytes = appendContestResultRowToCSV(bytes, ur)
+	}
+
+	return bytes
+}

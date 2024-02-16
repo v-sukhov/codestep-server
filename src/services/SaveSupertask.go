@@ -33,7 +33,11 @@ type SaveSupertaskRequest struct {
 	CommitMessage       string `json:"commitMessage"`
 	SupertaskName       string `json:"supertaskName"`
 	SupertaskDesc       string `json:"supertaskDesc"`
+	SupertaskLogoHref   string `json:"supertaskLogoHref"`
 	SupertaskObjectJson string `json:"supertaskObjectJson"`
+	TasksNum            int16  `json:"tasksNum"`
+	MaxTotalScore       int32  `json:"maxTotalScore"`
+	MaxTaskScore        string `json:"maxTaskScore"`
 }
 
 type SaveSupertaskData struct {
@@ -105,7 +109,11 @@ func SaveSupertask(w http.ResponseWriter, r *http.Request) {
 					CommitMessage:       request.CommitMessage,
 					SupertaskName:       request.SupertaskName,
 					SupertaskDesc:       request.SupertaskDesc,
+					SupertaskLogoHref:   request.SupertaskLogoHref,
 					SupertaskObjectJson: request.SupertaskObjectJson,
+					TasksNum:            request.TasksNum,
+					MaxTotalScore:       request.MaxTotalScore,
+					MaxTaskScore:        request.MaxTaskScore,
 				}
 
 				if err := db.SaveSupertaskVersion(&supertaskVersion); err != nil {

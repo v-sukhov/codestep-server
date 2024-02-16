@@ -42,7 +42,7 @@ func parseInputFile(file io.Reader) (rows []db.AnswerRow, errNum int) {
 	return
 }
 
-func printRowsToBytes(rows []db.AnswerRow, errNum int) []byte {
+func printLoginPasswordRowsToBytes(rows []db.AnswerRow, errNum int) []byte {
 	var bytes []byte
 	bytes = make([]byte, 0, 20*len(rows)+100*errNum)
 
@@ -110,7 +110,7 @@ func CreateMultipleUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes := printRowsToBytes(rows, errNum)
+	bytes := printLoginPasswordRowsToBytes(rows, errNum)
 
 	answerFilename := "login-password-" + handler.Filename
 

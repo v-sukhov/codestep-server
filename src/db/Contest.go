@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 type Contest struct {
@@ -23,12 +26,12 @@ type ContestWithRights struct {
 }
 
 type SupertaskInContestInfo struct {
-	SupertaskId     int32  `json:"supertaskId"`
-	VersionNumber   int32  `json:"versionNumber"`
-	SupertaskName   string `json:"supertaskName"`
-	SupertaskDesc   string `json:"supertaskDesc"`
-	OrderNumber     int16  `json:"orderNumber"`
-	ContestLogoHref string `json:"supertaskLogoHref"`
+	SupertaskId       int32  `json:"supertaskId"`
+	VersionNumber     int32  `json:"versionNumber"`
+	SupertaskName     string `json:"supertaskName"`
+	SupertaskDesc     string `json:"supertaskDesc"`
+	SupertaskLogoHref string `json:"supertaskLogoHref"`
+	OrderNumber       int16  `json:"orderNumber"`
 }
 
 type SupertaskInContestWithResults struct {
@@ -36,6 +39,24 @@ type SupertaskInContestWithResults struct {
 	SupertaskInfo       SupertaskInContestInfo `json:"supertaskInfo"`
 	TaskResults         []TaskResult           `json:"taskResults"`
 	SupertaskObjectJson string                 `json:"supertaskObjectJson"`
+}
+
+type ContestUserResult struct {
+	UserLogin       string    `json:"userLogin"`
+	SupertaskScore  [][]int32 `json:"supertaskScore"`
+	SupertaskTries  [][]int32 `json:"supertaskTries"`
+	SupertaskPassed [][]bool  `json:"supertaskPassed"`
+	TotalPassed     int32     `json:"totalPassed"`
+	TotalScore      int32     `json:"totalScore"`
+	TotalTries      int32     `json:"totalTries"`
+}
+
+type ContestResults struct {
+	SupertaskNames    []string            `json:"supertaskNames"`
+	TotalTasksNum     int32               `json:"totalTasksNum"`
+	MaxPossibleResult ContestUserResult   `json:"maxPossibleResult"`
+	UserResults       []ContestUserResult `json:"userResults"`
+	Errors            []string            `json:"resultsErrors"`
 }
 
 /*
@@ -64,6 +85,10 @@ func SaveContest(contest *Contest, userId int32) error {
 
 		_, err = tx.Exec(`INSERT INTO T_CONTEST_USER_RIGHT(USER_ID, CONTEST_ID, CONTEST_RIGHT_TYPE_ID)
 						VALUES($1, $2, 1)`, userId, contest.ContestId)
+
+		if err != nil {
+			return err
+		}
 
 		tx.Commit()
 	} else {
@@ -139,6 +164,8 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 				user_id,
 				contest_id
 			) ur on c.contest_id = ur.contest_id
+		order by
+			ur.contest_id desc
 		`, userId)
 
 	if err != nil {
@@ -235,7 +262,7 @@ func AddSupertaskToContest(contestId int32, supertaskId int32, supertaskVersionN
 		var maxOrderNumber int16
 		err = tx.QueryRow(`
 				SELECT
-					coalesce (max(ORDER_NUMBER), 0)
+					coalesce (max(ORDER_NUMBER), -1)
 				FROM
 					T_CONTEST_SUPERTASK
 				WHERE
@@ -280,6 +307,9 @@ func RemoveSupertaskFromContest(contestId int32, supertaskId int32) error {
 	defer tx.Rollback()
 
 	_, err = tx.Exec(`LOCK TABLE T_CONTEST_SUPERTASK IN EXCLUSIVE MODE`)
+	if err != nil {
+		return err
+	}
 
 	var orderNumber int32
 	err = tx.QueryRow(`
@@ -337,6 +367,7 @@ func GetContestSupertaskList(contestId int32) (supertaskList []SupertaskInContes
 			cs.supertask_version_number,
 			sv.supertask_name,
 			sv.supertask_desc,
+			sv.supertask_logo_href,
 			cs.order_number
 		FROM
 			t_contest_supertask cs join
@@ -351,6 +382,8 @@ func GetContestSupertaskList(contestId int32) (supertaskList []SupertaskInContes
 		return
 	}
 
+	defer rows.Close()
+
 	supertaskList = make([]SupertaskInContestInfo, 0)
 
 	for rows.Next() {
@@ -360,6 +393,7 @@ func GetContestSupertaskList(contestId int32) (supertaskList []SupertaskInContes
 			&supertaskInfo.VersionNumber,
 			&supertaskInfo.SupertaskName,
 			&supertaskInfo.SupertaskDesc,
+			&supertaskInfo.SupertaskLogoHref,
 			&supertaskInfo.OrderNumber,
 		)
 		if err != nil {
@@ -386,6 +420,7 @@ func GetSupertaskInContestWithResults(contestId int32, supertaskId int32, userId
 						cs.supertask_version_number,
 						sv.supertask_name,
 						sv.supertask_desc,
+						sv.supertask_logo_href,
 						cs.order_number,
 						sv.supertask_object_json
 					FROM
@@ -399,6 +434,7 @@ func GetSupertaskInContestWithResults(contestId int32, supertaskId int32, userId
 		&supertaskInContest.SupertaskInfo.VersionNumber,
 		&supertaskInContest.SupertaskInfo.SupertaskName,
 		&supertaskInContest.SupertaskInfo.SupertaskDesc,
+		&supertaskInContest.SupertaskInfo.SupertaskLogoHref,
 		&supertaskInContest.SupertaskInfo.OrderNumber,
 		&supertaskInContest.SupertaskObjectJson,
 	)
@@ -414,6 +450,171 @@ func GetSupertaskInContestWithResults(contestId int32, supertaskId int32, userId
 	}
 
 	supertaskInContest.TaskResults = allTasksResults.TaskResults
+
+	return
+}
+
+/*
+	Возвращает результаты контеста по всем пользователям
+*/
+
+func GetContestResults(contestId int32) (results ContestResults, err error) {
+
+	results.Errors = make([]string, 0)
+
+	/*
+		Формируем заголовочную часть
+	*/
+
+	rows, err := db.Query(`
+		SELECT
+			tsv.supertask_name,
+			tsv.tasks_num,
+			tsv.max_total_score,
+			tsv.max_task_score
+		FROM
+			t_contest_supertask tcs join
+			t_supertask_version tsv on tsv.supertask_id = tcs.supertask_id and tsv.version_number = tcs.supertask_version_number
+		WHERE
+			tcs.contest_id = $1
+		ORDER BY
+			tcs.order_number
+		`, contestId)
+
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	results.MaxPossibleResult.UserLogin = "TOTAL"
+	supertaskNum := 0
+	for rows.Next() {
+		var supertask_name, max_task_score string
+		var tasks_num, max_total_score int32
+
+		if err = rows.Scan(
+			&supertask_name,
+			&tasks_num,
+			&max_total_score,
+			&max_task_score,
+		); err != nil {
+			return
+		}
+
+		supertaskNum++
+		results.SupertaskNames = append(results.SupertaskNames, supertask_name)
+		results.TotalTasksNum += tasks_num
+		results.MaxPossibleResult.TotalScore += max_total_score
+		results.MaxPossibleResult.TotalTries += tasks_num
+		results.MaxPossibleResult.TotalPassed += tasks_num
+
+		results.MaxPossibleResult.SupertaskScore = append(results.MaxPossibleResult.SupertaskScore, make([]int32, tasks_num))
+		results.MaxPossibleResult.SupertaskTries = append(results.MaxPossibleResult.SupertaskTries, make([]int32, tasks_num))
+		results.MaxPossibleResult.SupertaskPassed = append(results.MaxPossibleResult.SupertaskPassed, make([]bool, tasks_num))
+
+		taskMaxScore := strings.Split(max_task_score, " ")
+
+		for i := 0; i < min(int(tasks_num), len(taskMaxScore)); i++ {
+			score, e := strconv.Atoi(taskMaxScore[i])
+			if e != nil {
+				score = 0
+			}
+			results.MaxPossibleResult.SupertaskScore[supertaskNum-1][i] = int32(score)
+			results.MaxPossibleResult.SupertaskTries[supertaskNum-1][i] = 1
+			results.MaxPossibleResult.SupertaskPassed[supertaskNum-1][i] = true
+		}
+	}
+
+	rows.Close()
+
+	/*
+		Формируем результаты по всем пользователям
+	*/
+
+	rowsUsers, err := db.Query(`
+		SELECT
+			r.user_id,
+			tu.login,
+			tcs.order_number,
+			r.task_num,
+			r.passed,
+			r.score,
+			r.tries
+		FROM
+			t_supertask_result r join
+			t_contest_supertask tcs on tcs.contest_id = r.contest_id and tcs.supertask_id = r.supertask_id join 
+			t_user tu on tu.user_id = r.user_id 
+		WHERE
+			r.contest_id = $1
+		ORDER BY
+			r.user_id
+		`, contestId)
+
+	if err != nil {
+		return
+	}
+
+	defer rowsUsers.Close()
+
+	prevUserId := int32(-1)
+	userNumber := -1
+	for rowsUsers.Next() {
+		var user_id, order_number, task_num, score, tries int32
+		var login string
+		var passed bool
+
+		if err = rowsUsers.Scan(
+			&user_id,
+			&login,
+			&order_number,
+			&task_num,
+			&passed,
+			&score,
+			&tries,
+		); err != nil {
+			return
+		}
+
+		// Если новый очередной пользователь - формируем для него структуру
+		if user_id != prevUserId {
+			results.UserResults = append(results.UserResults, ContestUserResult{})
+			userNumber++
+
+			results.UserResults[userNumber].SupertaskScore = make([][]int32, len(results.SupertaskNames))
+			results.UserResults[userNumber].SupertaskTries = make([][]int32, len(results.SupertaskNames))
+			results.UserResults[userNumber].SupertaskPassed = make([][]bool, len(results.SupertaskNames))
+
+			for i := 0; i < supertaskNum; i++ {
+				results.UserResults[userNumber].SupertaskScore[i] = make([]int32, len(results.MaxPossibleResult.SupertaskScore[i]))
+				results.UserResults[userNumber].SupertaskTries[i] = make([]int32, len(results.MaxPossibleResult.SupertaskScore[i]))
+				results.UserResults[userNumber].SupertaskPassed[i] = make([]bool, len(results.MaxPossibleResult.SupertaskScore[i]))
+			}
+
+			results.UserResults[userNumber].UserLogin = login
+		}
+
+		if int(task_num) < len(results.MaxPossibleResult.SupertaskScore[order_number]) {
+			results.UserResults[userNumber].SupertaskScore[order_number][task_num] = score
+			results.UserResults[userNumber].SupertaskTries[order_number][task_num] = tries
+			results.UserResults[userNumber].SupertaskPassed[order_number][task_num] = passed
+
+			results.UserResults[userNumber].TotalScore += score
+			results.UserResults[userNumber].TotalTries += tries
+			if passed {
+				results.UserResults[userNumber].TotalPassed++
+			}
+		} else {
+			results.Errors = append(results.Errors, fmt.Sprintf("Internal data error: task_num is larger than supertask tasks num: supertask order_number = %d, task_num = %d, user_id = %d, user_login = %s", order_number, task_num, user_id, login))
+		}
+	}
+
+	sort.Slice(results.UserResults, func(i, j int) bool {
+		return (results.UserResults[i].TotalScore > results.UserResults[j].TotalScore) ||
+			(results.UserResults[i].TotalScore == results.UserResults[j].TotalScore && results.UserResults[i].TotalPassed > results.UserResults[j].TotalPassed) ||
+			(results.UserResults[i].TotalScore == results.UserResults[j].TotalScore && results.UserResults[i].TotalPassed == results.UserResults[j].TotalPassed &&
+				results.UserResults[i].TotalTries < results.UserResults[j].TotalTries)
+	})
 
 	return
 }

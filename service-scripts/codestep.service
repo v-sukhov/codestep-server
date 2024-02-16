@@ -2,10 +2,11 @@
 Description=codestep
 
 [Service]
+Type=simple
 ExecStart=/var/codestep/codestep-server
 WorkingDirectory=/var/codestep
 User=codestep
-TimeouSec=30min
+TimeoutSec=30min
 RestartSec=60
 
 [Install]

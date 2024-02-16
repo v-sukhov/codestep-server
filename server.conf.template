@@ -2,11 +2,6 @@
 server_addr = localhost
 server_port = 8443
 
-# client adress
-client_protocol = http
-client_addr = localhost
-client_port = 3000
-
 # database server
 database_host = localhost
 database_port = 5432

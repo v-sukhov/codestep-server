@@ -35,6 +35,7 @@ type GetSupertaskData struct {
 	CommitMessage       string    `json:"commitMessage"`
 	SupertaskName       string    `json:"supertaskName"`
 	SupertaskDesc       string    `json:"supertaskDesc"`
+	SupertaskLogoHref   string    `json:"supertaskLogoHref"`
 	SupertaskObjectJson string    `json:"supertaskObjectJson"`
 }
 
@@ -112,6 +113,7 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 						SaveDTM:             supertaskVersion.SaveDTM,
 						SupertaskName:       supertaskVersion.SupertaskName,
 						SupertaskDesc:       supertaskVersion.SupertaskDesc,
+						SupertaskLogoHref:   supertaskVersion.SupertaskLogoHref,
 						SupertaskObjectJson: supertaskVersion.SupertaskObjectJson,
 					}
 					response = GetSupertaskResponse{
@@ -126,7 +128,7 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if byteArr, err := json.Marshal(response); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Response marshal failed"))
 	} else {
