@@ -16,7 +16,7 @@ type getContestResultsRequestWrapper struct {
 }
 
 // Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
-// swagger:response getContestSupertaskListResponse
+// swagger:response getContestResultsResponse
 type getContestResultsResponseWrapper struct {
 	// in:body
 	Body services.GetContestResultsResponse

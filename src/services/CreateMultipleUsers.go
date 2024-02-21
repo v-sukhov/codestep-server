@@ -12,19 +12,19 @@ import (
 	"strings"
 )
 
-var validLoginRegexp = regexp.MustCompile(`[a-z\d-_]+`)
+var validLoginRegexp = regexp.MustCompile(`[a-z\d/-_]+`)
 
 func checkLogin(login string) bool {
 	return validLoginRegexp.MatchString(login)
 }
 
-func parseInputFile(file io.Reader) (rows []db.AnswerRow, errNum int) {
-	rows = make([]db.AnswerRow, 0)
+func parseCreateUsersInputFile(file io.Reader) (rows []db.CreateUserAnswerRow, errNum int) {
+	rows = make([]db.CreateUserAnswerRow, 0)
 
 	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
-		var row db.AnswerRow
+		var row db.CreateUserAnswerRow
 		login := strings.TrimSpace(scanner.Text())
 		if len(login) > 0 {
 			if checkLogin(login) {
@@ -42,7 +42,7 @@ func parseInputFile(file io.Reader) (rows []db.AnswerRow, errNum int) {
 	return
 }
 
-func printLoginPasswordRowsToBytes(rows []db.AnswerRow, errNum int) []byte {
+func printLoginPasswordRowsToBytes(rows []db.CreateUserAnswerRow, errNum int) []byte {
 	var bytes []byte
 	bytes = make([]byte, 0, 20*len(rows)+100*errNum)
 
@@ -98,7 +98,7 @@ func CreateMultipleUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	rows, errNum := parseInputFile(file)
+	rows, errNum := parseCreateUsersInputFile(file)
 
 	err, dbErrRowsNum := db.CreateMultipleInternalUsers(rows)
 

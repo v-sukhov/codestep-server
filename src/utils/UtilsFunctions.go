@@ -31,7 +31,7 @@ func SendEmail(to []string, msg []byte) bool {
 	log.Print("Email sent successfully ")
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return false
 	}
 

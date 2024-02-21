@@ -592,6 +592,8 @@ func GetContestResults(contestId int32) (results ContestResults, err error) {
 			}
 
 			results.UserResults[userNumber].UserLogin = login
+
+			prevUserId = user_id
 		}
 
 		if int(task_num) < len(results.MaxPossibleResult.SupertaskScore[order_number]) {

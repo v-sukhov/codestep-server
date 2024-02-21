@@ -1,8 +1,10 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/magiconair/properties"
 
@@ -57,6 +59,21 @@ func main() {
 		CorsLogHttp = false
 	}
 
+	LogFileName := p.GetString("log_file_name", "")
+
+	/*
+		Настройки логирования
+	*/
+	if LogFileName != "" {
+		logFile, err := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+		if err != nil {
+			log.Println(err)
+		} else {
+			mw := io.MultiWriter(os.Stderr, logFile)
+			log.SetOutput(mw)
+		}
+	}
+
 	db.InitConnection(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword)
 
 	mux := http.NewServeMux()
@@ -107,6 +124,7 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/get-contest-results-file", services.GetContestResultsFile)
 	// User managment
 	muxProtected.HandleFunc("/api/protected/upload-create-user-list", services.CreateMultipleUsers)
+	muxProtected.HandleFunc("/api/protected/upload-manage-multiple-users-contest-rights", services.ManageMultipleUsersContestRights)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

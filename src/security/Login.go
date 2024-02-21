@@ -55,6 +55,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			if userBasicInfo, ok := db.AuthenticateUser(request.Login, request.Password); ok {
+				log.Printf("User login authentication success: %s\n", request.Login)
 				if token, err := generateJWT(userBasicInfo.UserId); err != nil {
 					response = LoginResponse{
 						Success: false,
@@ -89,6 +90,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 				}
 			} else {
+				log.Printf("User login authentication failed: %s\n", request.Login)
 				response = LoginResponse{
 					Success: false,
 					Message: "Incorrect login/password",

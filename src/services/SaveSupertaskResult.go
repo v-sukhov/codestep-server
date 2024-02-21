@@ -82,7 +82,7 @@ func SaveSupertaskResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if byteArr, err := json.Marshal(response); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Response marshal failed"))
 	} else {

@@ -145,7 +145,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		if byteArr, err := json.Marshal(response); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Response marshal failed"))
-			log.Fatal(err)
+			log.Println(err)
 		} else {
 			w.Write(byteArr)
 		}
@@ -197,7 +197,7 @@ func ValidateRegisterCode(w http.ResponseWriter, r *http.Request) {
 		if byteArr, err := json.Marshal(response); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Response marshal failed"))
-			log.Fatal(err)
+			log.Println(err)
 		} else {
 			w.Write(byteArr)
 		}
@@ -290,7 +290,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 		if byteArr, err := json.Marshal(response); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Response marshal failed"))
-			log.Fatal(err)
+			log.Println(err)
 		} else {
 			w.Write(byteArr)
 		}

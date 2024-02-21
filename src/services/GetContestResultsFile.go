@@ -73,7 +73,7 @@ func GetContestResultsFile(w http.ResponseWriter, r *http.Request) {
 func appendContestResultRowToCSV(bytes []byte, result db.ContestUserResult) []byte {
 	var res []byte
 
-	res = fmt.Appendf(res, "%s", result.UserLogin)
+	res = fmt.Appendf(bytes, "%s", result.UserLogin)
 
 	for i, st := range result.SupertaskScore {
 		for j, t := range st {
@@ -97,10 +97,18 @@ func printContestResultsToCSV(results db.ContestResults) []byte {
 		bytes = fmt.Appendf(bytes, "%s\n", e)
 	}
 
+	for _, name := range results.SupertaskNames {
+		bytes = fmt.Appendf(bytes, "\t\"%s\"", name)
+	}
+
+	bytes = fmt.Appendf(bytes, "\n")
+
 	bytes = fmt.Appendf(bytes, "login")
 
-	for _, name := range results.SupertaskNames {
-		bytes = fmt.Appendf(bytes, "\t%s", name)
+	for _, tasks := range results.MaxPossibleResult.SupertaskPassed {
+		for i := range tasks {
+			bytes = fmt.Appendf(bytes, "\t%d", i+1)
+		}
 	}
 
 	bytes = fmt.Appendf(bytes, "\ttotal_score\ttotal_passed\ttotal_tries\n")
