@@ -94,7 +94,7 @@ func main() {
 	mux.HandleFunc("/api/resume-register", security.ResumeRegister)
 
 	// Data files (contest logo, supertask logo, supertask images: sprites, backgrounds etc.)
-	mux.Handle("GET /files/", http.StripPrefix("/files/", http.FileServer(http.Dir("./files"))))
+	mux.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("./files"))))
 
 	// protected multiplexer for api
 
