@@ -81,9 +81,9 @@ func main() {
 	// Static files (frontend and static images)
 
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
-	mux.Handle("/contests", http.RedirectHandler("/", http.StatusSeeOther))
-	mux.Handle("/development", http.RedirectHandler("/", http.StatusSeeOther))
-	mux.Handle("/users", http.RedirectHandler("/", http.StatusSeeOther))
+	mux.Handle("/contests/", &IndexHtmlHandler{})
+	mux.Handle("/development/", &IndexHtmlHandler{})
+	mux.Handle("/administration/", &IndexHtmlHandler{})
 
 	// Login
 	mux.HandleFunc("/api/login", security.Login)
@@ -94,7 +94,7 @@ func main() {
 	mux.HandleFunc("/api/resume-register", security.ResumeRegister)
 
 	// Data files (contest logo, supertask logo, supertask images: sprites, backgrounds etc.)
-	mux.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("./files"))))
+	mux.Handle("GET /files/", http.StripPrefix("/files/", http.FileServer(http.Dir("./files"))))
 
 	// protected multiplexer for api
 
