@@ -38,6 +38,12 @@ type ManageMultipleUsersContestRightsResponse struct {
 	Если один и тот же логин встречается в файле несколько раз, то каждая комбинация логин-контест-тип прав учитывается один раз
 */
 
+/*
+	TODO:
+
+	Добавить проверку на существование контеста contest_id
+*/
+
 func parseManageUserContestRightsInputFile(file io.Reader) (rows []db.ManageUserContestRightsRow) {
 	rows = make([]db.ManageUserContestRightsRow, 0)
 

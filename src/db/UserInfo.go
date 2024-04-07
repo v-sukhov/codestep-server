@@ -76,7 +76,7 @@ func FindUserByLogin(login string) (UserBasicInfo, bool) {
 	return userInfo, ok
 }
 
-func CreateUser(username string, email string, password string) (int32, error) {
+func CreateUser(username string, email string, password string) (UserRights, error) {
 
 	var userId int32
 
@@ -88,7 +88,13 @@ func CreateUser(username string, email string, password string) (int32, error) {
 		VALUES( $1, false, false, false)`, userId)
 	}
 
-	return userId, err
+	return UserRights{
+			UserId:      userId,
+			IsAdmin:     false,
+			IsDeveloper: false,
+			IsJury:      false,
+		},
+		err
 }
 
 func GetUserRights(userId int32) (userRights UserRights, err error) {

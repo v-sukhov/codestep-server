@@ -5,7 +5,7 @@ import (
 	"codestep/utils"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -38,11 +38,16 @@ type ResumeRegisterRequest struct {
 	PasswordConfirmation string `json:"passwordconfirmation"`
 }
 
+type ResumeRegisterResponseData struct {
+	Token    string   `json:"token"`
+	Login    string   `json:"login"`
+	UserInfo UserInfo `json:"userInfo"`
+}
+
 type ResumeRegisterResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Token   string `json:"token"`
-	Login   string `json:"login"`
+	Success bool                       `json:"success"`
+	Message string                     `json:"message"`
+	Data    ResumeRegisterResponseData `json:"data"`
 }
 
 type RegisterMapClaims struct {
@@ -96,7 +101,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var response RegisterResponse
 	if r.Method == "POST" {
 
-		if body, err := ioutil.ReadAll(r.Body); err != nil {
+		if body, err := io.ReadAll(r.Body); err != nil {
 			response = RegisterResponse{
 				Success: false,
 				Message: "Body reading failed",
@@ -161,7 +166,7 @@ func ValidateRegisterCode(w http.ResponseWriter, r *http.Request) {
 	var response ValidateResponse
 	if r.Method == "POST" {
 
-		if body, err := ioutil.ReadAll(r.Body); err != nil {
+		if body, err := io.ReadAll(r.Body); err != nil {
 			response = ValidateResponse{
 				Success: false,
 				Message: "Body reading failed",
@@ -212,7 +217,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 	var response ResumeRegisterResponse
 	if r.Method == "POST" {
 
-		if body, err := ioutil.ReadAll(r.Body); err != nil {
+		if body, err := io.ReadAll(r.Body); err != nil {
 			response = ResumeRegisterResponse{
 				Success: false,
 				Message: "Body reading failed",
@@ -257,7 +262,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 						Message: "Password mismatch ",
 					}
 				} else {
-					userId, err := db.CreateUser(username, email, request.Password)
+					userRights, err := db.CreateUser(username, email, request.Password)
 
 					if err != nil {
 						response = ResumeRegisterResponse{
@@ -269,7 +274,7 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 							Id:       userId,
 							UserType: REGULAR,
 						})*/
-						if token, err := generateJWT(userId); err != nil {
+						if token, err := generateJWT(userRights.UserId); err != nil {
 							response = ResumeRegisterResponse{
 								Success: false,
 								Message: "Inernal server error: " + err.Error(),
@@ -278,8 +283,19 @@ func ResumeRegister(w http.ResponseWriter, r *http.Request) {
 							response = ResumeRegisterResponse{
 								Success: true,
 								Message: "Registration completed successfully ",
-								Token:   "Bearer " + token,
-								Login:   username,
+								Data: ResumeRegisterResponseData{
+									Token: "Bearer " + token,
+									Login: username,
+									UserInfo: UserInfo{
+										UserId:      userRights.UserId,
+										UserLogin:   username,
+										DisplayName: username,
+										UserType:    1,
+										IsAdmin:     userRights.IsAdmin,
+										IsDeveloper: userRights.IsDeveloper,
+										IsJury:      userRights.IsJury,
+									},
+								},
 							}
 						}
 					}

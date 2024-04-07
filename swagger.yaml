@@ -38,6 +38,73 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/services
+  ContestResults:
+    properties:
+      maxPossibleResult:
+        $ref: '#/definitions/ContestUserResult'
+      resultsErrors:
+        items:
+          type: string
+        type: array
+        x-go-name: Errors
+      supertaskNames:
+        items:
+          type: string
+        type: array
+        x-go-name: SupertaskNames
+      totalTasksNum:
+        format: int32
+        type: integer
+        x-go-name: TotalTasksNum
+      userResults:
+        items:
+          $ref: '#/definitions/ContestUserResult'
+        type: array
+        x-go-name: UserResults
+    type: object
+    x-go-package: codestep/db
+  ContestUserResult:
+    properties:
+      supertaskPassed:
+        items:
+          items:
+            type: boolean
+          type: array
+        type: array
+        x-go-name: SupertaskPassed
+      supertaskScore:
+        items:
+          items:
+            format: int32
+            type: integer
+          type: array
+        type: array
+        x-go-name: SupertaskScore
+      supertaskTries:
+        items:
+          items:
+            format: int32
+            type: integer
+          type: array
+        type: array
+        x-go-name: SupertaskTries
+      totalPassed:
+        format: int32
+        type: integer
+        x-go-name: TotalPassed
+      totalScore:
+        format: int32
+        type: integer
+        x-go-name: TotalScore
+      totalTries:
+        format: int32
+        type: integer
+        x-go-name: TotalTries
+      userLogin:
+        type: string
+        x-go-name: UserLogin
+    type: object
+    x-go-package: codestep/db
   ContestWithRights:
     properties:
       contestDesc:
@@ -59,6 +126,34 @@ definitions:
         x-go-name: UserRightsBitmask
     type: object
     x-go-package: codestep/db
+  GetContestResultsFileRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+    type: object
+    x-go-package: codestep/services
+  GetContestResultsRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+    type: object
+    x-go-package: codestep/services
+  GetContestResultsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/ContestResults'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services
   GetContestSupertaskListData:
     properties:
       supertaskList:
@@ -455,6 +550,38 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/security
+  ManageMultipleUsersContestRightsData:
+    properties:
+      rowError:
+        items:
+          $ref: '#/definitions/ManageMultipleUsersContestRightsRowError'
+        type: array
+        x-go-name: RowError
+    type: object
+    x-go-package: codestep/services
+  ManageMultipleUsersContestRightsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/ManageMultipleUsersContestRightsData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services
+  ManageMultipleUsersContestRightsRowError:
+    properties:
+      errorMessage:
+        type: string
+        x-go-name: ErrorMessage
+      rowNumber:
+        format: int64
+        type: integer
+        x-go-name: RowNumber
+    type: object
+    x-go-package: codestep/services
   RemoveSupertaskFromContestData:
     type: object
     x-go-package: codestep/services
@@ -539,6 +666,13 @@ definitions:
       commited:
         type: boolean
         x-go-name: Commited
+      maxTaskScore:
+        type: string
+        x-go-name: MaxTaskScore
+      maxTotalScore:
+        format: int32
+        type: integer
+        x-go-name: MaxTotalScore
       parentVersionNumber:
         format: int32
         type: integer
@@ -550,12 +684,19 @@ definitions:
         format: int32
         type: integer
         x-go-name: SupertaskId
+      supertaskLogoHref:
+        type: string
+        x-go-name: SupertaskLogoHref
       supertaskName:
         type: string
         x-go-name: SupertaskName
       supertaskObjectJson:
         type: string
         x-go-name: SupertaskObjectJson
+      tasksNum:
+        format: int16
+        type: integer
+        x-go-name: TasksNum
     type: object
     x-go-package: codestep/services
   SaveSupertaskResponse:
@@ -852,6 +993,34 @@ paths:
           $ref: '#/responses/addSupertaskToContestResponse'
       tags:
       - add-supertask-to-contest
+  /api/protected/get-contest-results:
+    post:
+      description: Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
+      operationId: idOfGetContestResultsEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetContestResultsRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getContestResultsResponse'
+      tags:
+      - get-contest-results
+  /api/protected/get-contest-results-file:
+    post:
+      description: Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток в файле
+      operationId: idOfGetContestResultsFileEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetContestResultsFileRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getContestResultsFileResponse'
+      tags:
+      - get-contest-results-file
   /api/protected/get-contest-supertask-list:
     post:
       description: Возвращает список суперзадач контеста, отсортированный в порядке order_number
@@ -1056,6 +1225,14 @@ paths:
           $ref: '#/responses/uploadCreateUserListResponse'
       tags:
       - upload-create-user-list
+  /api/protected/upload-manage-multiple-users-contest-rights:
+    post:
+      description: |-
+        Управление правами пользователей на контесты: позволяет выдавать и забирать права пользователей на контесты
+        Получает на вход файл следующей структуры (разделитель - табуляции или пробелы):
+      operationId: idOfManageMultipleUsersContestRightsEndpoint
+      tags:
+      - upload-manage-multiple-users-contest-rights
   /api/protectes/logout:
     post:
       description: Logout user
@@ -1078,6 +1255,12 @@ responses:
     description: Add supertask to contest
     schema:
       $ref: '#/definitions/AddSupertaskToContestResponse'
+  getContestResultsFileResponse:
+    description: Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
+  getContestResultsResponse:
+    description: Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
+    schema:
+      $ref: '#/definitions/GetContestResultsResponse'
   getContestSupertaskListResponse:
     description: Get contest supertask list sorted by order_number
     schema:
@@ -1118,6 +1301,12 @@ responses:
     description: User logout success
     schema:
       $ref: '#/definitions/LogoutResponse'
+  manageMultipleUsersContestRightsResponse:
+    description: |-
+      Возвращает результаты задания прав пользователей на контесты. Если файл удалось успешно обработать и не было ошибок БД возвращает Success = true
+      Все проблемные строки, по которым не удалось выполнить операцию возвращает в ответе с указанием номера строки в файле и описанием проблемы.
+    schema:
+      $ref: '#/definitions/ManageMultipleUsersContestRightsResponse'
   removeSupertaskFromContestResponse:
     description: Remove supertask from contest
     schema:

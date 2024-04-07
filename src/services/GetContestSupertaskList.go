@@ -13,8 +13,16 @@ type GetContestSupertaskListRequest struct {
 	ContestId int32 `json:"contestId"`
 }
 
+type UserContestRights struct {
+	IsOwner       bool `json:"isOwner"`
+	IsAdmin       bool `json:"isAdmin"`
+	IsJury        bool `json:"isJury"`
+	IsParticipant bool `json:"isParticipant"`
+}
+
 type GetContestSupertaskListData struct {
-	SupertasksList []db.SupertaskInContestInfo `json:"supertaskList"`
+	SupertasksList    []db.SupertaskInContestInfo `json:"supertaskList"`
+	UserContestRights UserContestRights           `json:"userContestRights"`
 }
 
 type GetContestSupertaskListResponse struct {
@@ -66,6 +74,12 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 				} else {
 					data := GetContestSupertaskListData{
 						SupertasksList: supertaskList,
+						UserContestRights: UserContestRights{
+							IsOwner:       (userContestRights&1 > 0),
+							IsAdmin:       (userContestRights&2 > 0),
+							IsJury:        (userContestRights&4 > 0),
+							IsParticipant: (userContestRights&8 > 0),
+						},
 					}
 					response = GetContestSupertaskListResponse{
 						Success: true,
