@@ -32,14 +32,14 @@ func GetContestResultsFile(w http.ResponseWriter, r *http.Request) {
 			success = false
 			message = "JSON decoding failed"
 		} else {
-			userRights, err := db.GetUserRights(userId)
+			userContestRights, err := db.GetUserContestRights(userId, request.ContestId)
 
 			if err != nil {
 				success = false
 				message = err.Error()
-			} else if !userRights.IsAdmin {
+			} else if userContestRights&7 == 0 { // 7 = 4 + 2 + 1 - права владельца, администратора или жюри
 				success = false
-				message = "User does not have admin rights to request contest result"
+				message = "User does not have owner, admin or jury rights to request contest result"
 			} else {
 				results, err = db.GetContestResults(request.ContestId)
 

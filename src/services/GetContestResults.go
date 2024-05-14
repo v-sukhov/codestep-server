@@ -47,10 +47,10 @@ func GetContestResults(w http.ResponseWriter, r *http.Request) {
 					Success: false,
 					Message: err.Error(),
 				}
-			} else if userContestRights&7 == 0 {
+			} else if userContestRights&7 == 0 { // 7 = 4 + 2 + 1 - права владельца, администратора или жюри
 				response = GetContestResultsResponse{
 					Success: false,
-					Message: "User does not have admin rights to request contest result",
+					Message: "User does not have owner, admin or jury rights to request contest result",
 				}
 			} else {
 				results, err := db.GetContestResults(request.ContestId)
