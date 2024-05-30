@@ -461,6 +461,7 @@ func GetSupertaskInContestWithResults(contestId int32, supertaskId int32, userId
 func GetContestResults(contestId int32) (results ContestResults, err error) {
 
 	results.Errors = make([]string, 0)
+	results.UserResults = make([]ContestUserResult, 0)
 
 	/*
 		Формируем заголовочную часть
