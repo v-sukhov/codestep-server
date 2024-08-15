@@ -40,7 +40,7 @@ func GetContestResults(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 
-			userContestRights, err := db.GetUserContestRights(userId, request.ContestId)
+			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 
 			if err != nil {
 				response = GetContestResultsResponse{

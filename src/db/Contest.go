@@ -11,10 +11,11 @@ import (
 )
 
 type Contest struct {
-	ContestId       int32
-	ContestName     string
-	ContestDesc     string
-	ContestLogoHref string
+	ContestId       int32                    `json:"contestId"`
+	ContestName     string                   `json:"contestName"`
+	ContestDesc     string                   `json:"contestDesc"`
+	ContestLogoHref string                   `json:"contestLogoHref"`
+	SupertaskList   []SupertaskInContestInfo `json:"supertaskList"`
 }
 
 type ContestWithRights struct {
@@ -63,6 +64,7 @@ type ContestResults struct {
 Сохраняет контест
 Если contestId = 0, значит создаёт новый
 Права пользователя не проверяются
+Из списка задач использует только supertaskId и versionNumber
 */
 func SaveContest(contest *Contest, userId int32) error {
 	if contest.ContestId == 0 {
@@ -115,7 +117,9 @@ func SaveContest(contest *Contest, userId int32) error {
 		}
 	}
 
-	return nil
+	err := RewriteContestSupertaskList(contest.ContestId, contest.SupertaskList)
+
+	return err
 }
 
 /*
@@ -138,6 +142,17 @@ func GetContest(contestId int32) (contest Contest, err error) {
 		&contest.ContestDesc,
 		&contest.ContestLogoHref,
 	)
+	if err != nil {
+		return
+	}
+
+	supertaskList, err := GetContestSupertaskList(contestId)
+	if err != nil {
+		return
+	}
+
+	contest.SupertaskList = supertaskList
+
 	return
 }
 
@@ -196,7 +211,7 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 /*
 Запрос прав пользователя на контест - возвращает в виде битовой маски прав
 */
-func GetUserContestRights(userId int32, contestId int32) (rightsBitmask int32, err error) {
+func GetContestUserRights(userId int32, contestId int32) (rightsBitmask int32, err error) {
 	err = db.QueryRow(`
 			select
 				sum(1 << (contest_right_type_id - 1)) as user_contest_rights_bitmask
@@ -353,6 +368,57 @@ func RemoveSupertaskFromContest(contestId int32, supertaskId int32) error {
 		}
 	}
 
+	return nil
+}
+
+/*
+	Переписать список задач контеста
+	Из списка задач использует только supertaskId и versionNumber
+	Порядок создаёт в соответствии с порядком элементов массива, а не orderNumber
+*/
+
+func RewriteContestSupertaskList(contestId int32, supertaskList []SupertaskInContestInfo) error {
+
+	ctx := context.TODO()
+	tx, err := db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`LOCK TABLE T_CONTEST_SUPERTASK IN EXCLUSIVE MODE`)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+			DELETE FROM T_CONTEST_SUPERTASK
+			WHERE
+				CONTEST_ID = $1
+		`, contestId)
+	if err != nil {
+		return err
+	}
+
+	orderNumber := 0
+
+	stmt, err := tx.Prepare("INSERT INTO T_CONTEST_SUPERTASK(CONTEST_ID, SUPERTASK_ID, SUPERTASK_VERSION_NUMBER, ORDER_NUMBER) VALUES($1, $2, $3, $4)")
+	if err != nil {
+		return err
+	}
+
+	for _, row := range supertaskList {
+		orderNumber++
+		_, dbErr := stmt.Exec(contestId, row.SupertaskId, row.VersionNumber, orderNumber)
+		if dbErr != nil {
+			return dbErr
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
 	return nil
 }
 

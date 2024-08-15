@@ -23,6 +23,23 @@ type SupertaskVersion struct {
 	MaxTaskScore        string
 }
 
+type SupertaskVersionShortInfo struct {
+	SupertaskId         int32     `json:"supertaskId"`
+	VersionNumber       int32     `json:"versionNumber"`
+	ParentVersionNumber int32     `json:"parentVersionNumber"`
+	Commited            bool      `json:"commited"`
+	AuthorUserId        int32     `json:"authorUserId"`
+	AuthorUserName      string    `json:"authorUserName"`
+	CommitMessage       string    `json:"commitMessage"`
+	SaveDTM             time.Time `json:"saveDTM"`
+	SupertaskName       string    `json:"supertaskName"`
+	SupertaskDesc       string    `json:"supertaskDesc"`
+	SupertaskLogoHref   string    `json:"supertaskLogoHref"`
+	TasksNum            int16     `json:"tasksNum"`
+	MaxTotalScore       int32     `json:"maxTotalScore"`
+	MaxTaskScore        string    `json:"maxTaskScore"`
+}
+
 type SupertaskLastVersionInfo struct {
 	SupertaskId            int32     `json:"supertaskId"`
 	SupertaskRightTypeId   int32     `json:"supertaskRightTypeId"`
@@ -334,6 +351,61 @@ func GetSupertaskVersion(supertaskId int32, supertaskVersionNumber int32) (super
 			&supertaskVersion.MaxTotalScore,
 			&supertaskVersion.MaxTaskScore,
 		)
+
+	return
+}
+
+func GetSupertaskAllVersions(supertaskId int32) (supertaskVersionList []SupertaskVersionShortInfo, err error) {
+
+	rows, err := db.Query(`
+						SELECT
+							s.supertask_id,
+							s.version_number,
+							s.parent_version_number,
+							s.commited,
+							s.author_user_id,
+							u.display_name as author_user_name,
+							s.commit_message,
+							s.save_dtm,
+							s.supertask_name,
+							s.supertask_desc,
+							s.supertask_logo_href,
+							s.tasks_num,
+							s.max_total_score,
+							s.max_task_score
+						FROM
+							t_supertask_version s join
+							t_user u on u.user_id = s.author_user_id
+						WHERE
+							supertask_id = $1
+						ORDER BY
+							s.version_number desc, s.save_dtm desc
+				`, supertaskId)
+
+	supertaskVersionList = make([]SupertaskVersionShortInfo, 0)
+
+	for rows.Next() {
+		var supertaskVersionInfo SupertaskVersionShortInfo
+		if err = rows.Scan(
+			&supertaskVersionInfo.SupertaskId,
+			&supertaskVersionInfo.VersionNumber,
+			&supertaskVersionInfo.ParentVersionNumber,
+			&supertaskVersionInfo.Commited,
+			&supertaskVersionInfo.AuthorUserId,
+			&supertaskVersionInfo.AuthorUserName,
+			&supertaskVersionInfo.CommitMessage,
+			&supertaskVersionInfo.SaveDTM,
+			&supertaskVersionInfo.SupertaskName,
+			&supertaskVersionInfo.SupertaskDesc,
+			&supertaskVersionInfo.SupertaskLogoHref,
+			&supertaskVersionInfo.TasksNum,
+			&supertaskVersionInfo.MaxTotalScore,
+			&supertaskVersionInfo.MaxTaskScore,
+		); err != nil {
+			return
+		}
+		supertaskVersionList = append(supertaskVersionList, supertaskVersionInfo)
+	}
 
 	return
 }

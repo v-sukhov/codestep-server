@@ -9,7 +9,7 @@ Server side for codestep project
 4. Установить go-swagger:
 https://github.com/go-swagger/go-swagger
 
-## Установка
+## Установка без дистрибутива
 
 1. Установить и настроить postgres - см. db/management
 2. Установить liquibase:
@@ -17,6 +17,35 @@ https://github.com/go-swagger/go-swagger
 3. Установить пакет сервера в /var/codestep/
 4. Задать параметры в server.conf
 5. Настроить сервис - см. service-script
+6. Чтобы можно было использовать 443 порт нужно выполнить
+	sudo sysctl net.ipv4.ip_unprivileged_port_start=443
+	(см. https://stackoverflow.com/questions/413807/is-there-a-way-for-non-root-processes-to-bind-to-privileged-ports-on-linux)
+
+## Установка из deb-дистрибутива
+1. Установить и настроить postgres - см. db/management
+2. Установить liquibase:
+	https://docs.liquibase.com/start/install/liquibase-linux-debian-ubuntu.html
+3. Чтобы можно было использовать 443 порт нужно выполнить
+	sudo sysctl net.ipv4.ip_unprivileged_port_start=443
+	(см. https://stackoverflow.com/questions/413807/is-there-a-way-for-non-root-processes-to-bind-to-privileged-ports-on-linux)	
+	
+	Ещё можно выполнить 
+		
+	sudo ufw allow 22
+	sudo ufw allow 443/tcp
+	sudo ufw enable
+	
+	Но возможно ufw не требуется.
+	
+4. Установить codestep...amd64.deb
+5. Задать параметры в server.conf
+6. В /var/codestep/liquibase выполнить:
+
+	liquibase update
+	
+7. Рестартовать сервис:
+
+	sudo systemctl restart codestep
 
 ## Выпуск и обновление сертификата Let's encrypt от Яндекс-Облака
 

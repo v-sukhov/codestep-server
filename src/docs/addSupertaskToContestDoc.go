@@ -5,7 +5,7 @@ import (
 )
 
 // swagger:route POST /api/protected/add-supertask-to-contest add-supertask-to-contest idOfAddSupertaskToContestEndpoint
-// Добавить суперзадачу в контест
+// НЕ ИСПОЛЬЗУЕТСЯ!!! Добавить суперзадачу в контест
 // responses:
 //   200: addSupertaskToContestResponse
 

@@ -5,7 +5,7 @@ import (
 )
 
 // swagger:route POST /api/protected/save-contest save-contest idOfSaveContestEndpoint
-// Сохранить контест
+// Сохранить контест (перезаписывает данные контеста). Требует прав владельца или администратора контеста.
 // Если contestId = 0, значит создаёт новый
 // responses:
 //   200: saveContest

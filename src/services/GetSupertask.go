@@ -81,7 +81,7 @@ func GetSupertask(w http.ResponseWriter, r *http.Request) {
 			} else if supertaskUserRight == 0 {
 				response = GetSupertaskResponse{
 					Success: false,
-					Message: "User does not have permition on the supertask",
+					Message: "User does not have permission on the supertask",
 				}
 			} else {
 				var supertaskVersion db.SupertaskVersion

@@ -52,7 +52,7 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 				Message: "JSON decoding failed",
 			}
 		} else {
-			userContestRights, err := db.GetUserContestRights(userId, request.ContestId)
+			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 
 			if err != nil {
 				response = GetContestSupertaskListResponse{

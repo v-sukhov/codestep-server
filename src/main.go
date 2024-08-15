@@ -105,6 +105,7 @@ func main() {
 	// Supertask
 	muxProtected.HandleFunc("/api/protected/save-supertask", services.SaveSupertask)
 	muxProtected.HandleFunc("/api/protected/get-supertask", services.GetSupertask)
+	muxProtected.HandleFunc("/api/protected/get-supertask-versions", services.GetSupertaskVersions)
 	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", services.GetUserSupertaskList)
 	// Supertask solution
 	muxProtected.HandleFunc("/api/protected/save-supertask-solution", services.SaveSupertaskSolution)
@@ -114,6 +115,7 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/get-supertask-result", services.GetSupertaskResult)
 	muxProtected.HandleFunc("/api/protected/get-supertask-all-tasks-results", services.GetSupertaskAllTasksResults)
 	// Contest
+	muxProtected.HandleFunc("/api/protected/get-contest", services.GetContest)
 	muxProtected.HandleFunc("/api/protected/save-contest", services.SaveContest)
 	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", services.AddSupertaskToContest)
 	muxProtected.HandleFunc("/api/protected/get-contest-supertask-list", services.GetContestSupertaskList)

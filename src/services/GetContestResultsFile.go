@@ -32,7 +32,7 @@ func GetContestResultsFile(w http.ResponseWriter, r *http.Request) {
 			success = false
 			message = "JSON decoding failed"
 		} else {
-			userContestRights, err := db.GetUserContestRights(userId, request.ContestId)
+			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 
 			if err != nil {
 				success = false

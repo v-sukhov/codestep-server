@@ -9,11 +9,17 @@ import (
 	"net/http"
 )
 
+type SupertaskIdAndVersionNumber struct {
+	SupertaskId   int32 `json:"supertaskId"`
+	VersionNumber int32 `json:"versionNumber"`
+}
+
 type SaveContestRequest struct {
-	ContestId       int32  `json:"contestId"`
-	ContestName     string `json:"contestName"`
-	ContestDesc     string `json:"contestDesc"`
-	ContestLogoHref string `json:"contestLogoHref"`
+	ContestId       int32                         `json:"contestId"`
+	ContestName     string                        `json:"contestName"`
+	ContestDesc     string                        `json:"contestDesc"`
+	ContestLogoHref string                        `json:"contestLogoHref"`
+	SupertaskList   []SupertaskIdAndVersionNumber `json:"supertaskList"`
 }
 
 type SaveContestData struct {
@@ -26,13 +32,10 @@ type SaveContestResponse struct {
 	Data    SaveContestData `json:"data"`
 }
 
+/*
+Перезаписывает данные контеста. Требует прав владельца или администратора контеста.
+*/
 func SaveContest(w http.ResponseWriter, r *http.Request) {
-
-	/*
-		TODO: добавить проверку прав пользователя:
-			1. Вообще на операцию сохранения контеста
-			2. Конкретно на этот контест
-	*/
 
 	var request SaveContestRequest
 	var response SaveContestResponse
@@ -53,27 +56,50 @@ func SaveContest(w http.ResponseWriter, r *http.Request) {
 				Message: "JSON decoding failed",
 			}
 		} else {
+			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 
-			contest := db.Contest{
-				ContestId:       request.ContestId,
-				ContestName:     request.ContestName,
-				ContestDesc:     request.ContestDesc,
-				ContestLogoHref: request.ContestLogoHref,
-			}
-
-			if err := db.SaveContest(&contest, userId); err != nil {
+			if err != nil {
 				response = SaveContestResponse{
 					Success: false,
 					Message: err.Error(),
 				}
-			} else {
-				data := SaveContestData{
-					ContestId: contest.ContestId,
-				}
+			} else if userContestRights&3 == 0 {
 				response = SaveContestResponse{
-					Success: true,
-					Message: "OK",
-					Data:    data,
+					Success: false,
+					Message: "User does not have owner or admin rights on the contest",
+				}
+			} else {
+
+				var supertaskList []db.SupertaskInContestInfo
+				for _, row := range request.SupertaskList {
+					supertaskList = append(supertaskList,
+						db.SupertaskInContestInfo{
+							SupertaskId:   row.SupertaskId,
+							VersionNumber: row.VersionNumber,
+						})
+				}
+				contest := db.Contest{
+					ContestId:       request.ContestId,
+					ContestName:     request.ContestName,
+					ContestDesc:     request.ContestDesc,
+					ContestLogoHref: request.ContestLogoHref,
+					SupertaskList:   supertaskList,
+				}
+
+				if err := db.SaveContest(&contest, userId); err != nil {
+					response = SaveContestResponse{
+						Success: false,
+						Message: err.Error(),
+					}
+				} else {
+					data := SaveContestData{
+						ContestId: contest.ContestId,
+					}
+					response = SaveContestResponse{
+						Success: true,
+						Message: "OK",
+						Data:    data,
+					}
 				}
 			}
 		}
