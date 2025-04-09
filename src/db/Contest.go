@@ -409,11 +409,11 @@ func RewriteContestSupertaskList(contestId int32, supertaskList []SupertaskInCon
 	}
 
 	for _, row := range supertaskList {
-		orderNumber++
 		_, dbErr := stmt.Exec(contestId, row.SupertaskId, row.VersionNumber, orderNumber)
 		if dbErr != nil {
 			return dbErr
 		}
+		orderNumber++
 	}
 
 	if err = tx.Commit(); err != nil {
