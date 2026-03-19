@@ -1,5 +1,12 @@
 package services
 
+/**
+Запрос содержания задачи вместе с результатами запрашивающего пользователя
+Сервис предназначен для вызова участниками владельцем, администратором, жюри и участниками контеста
+Доступ для владельца и администратора не ограничен по времени
+Доступ для участника и жюри ограничен по времени
+*/
+
 import (
 	"codestep/db"
 	"codestep/security"
@@ -40,22 +47,50 @@ func GetSupertaskInContestWithResults(w http.ResponseWriter, r *http.Request) {
 				Message: "JSON decoding failed ",
 			}
 		} else {
-			supertaskInContestWithResults, err := db.GetSupertaskInContestWithResults(
-				request.ContestId,
-				request.SupertaskId,
-				userId,
-			)
-
+			// Проверка прав пользователя на контест
+			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 			if err != nil {
 				response = GetSupertaskInContestWithResultsResponse{
 					Success: false,
 					Message: err.Error(),
 				}
-			} else {
+			} else if userContestRights == 0 {
 				response = GetSupertaskInContestWithResultsResponse{
-					Success: true,
-					Message: "",
-					Data:    supertaskInContestWithResults,
+					Success: false,
+					Message: "User does not have rights on contest",
+				}
+			} else {
+				// Проверка доступа к контесту по времени
+				access, _, err := CheckContestTimeAccess(userId, request.ContestId)
+				if err != nil {
+					response = GetSupertaskInContestWithResultsResponse{
+						Success: false,
+						Message: err.Error(),
+					}
+				} else if !access {
+					response = GetSupertaskInContestWithResultsResponse{
+						Success: false,
+						Message: "Access to contest is not allowed at this time",
+					}
+				} else {
+					supertaskInContestWithResults, err := db.GetSupertaskInContestWithResults(
+						request.ContestId,
+						request.SupertaskId,
+						userId,
+					)
+
+					if err != nil {
+						response = GetSupertaskInContestWithResultsResponse{
+							Success: false,
+							Message: err.Error(),
+						}
+					} else {
+						response = GetSupertaskInContestWithResultsResponse{
+							Success: true,
+							Message: "",
+							Data:    supertaskInContestWithResults,
+						}
+					}
 				}
 			}
 		}

@@ -43,6 +43,10 @@ definitions:
       contestDesc:
         type: string
         x-go-name: ContestDesc
+      contestDuration:
+        format: int32
+        type: integer
+        x-go-name: ContestDuration
       contestId:
         format: int32
         type: integer
@@ -53,11 +57,32 @@ definitions:
       contestName:
         type: string
         x-go-name: ContestName
+      contestStartTime:
+        format: date-time
+        type: string
+        x-go-name: ContestStartTime
+      gmtOffset:
+        format: int32
+        type: integer
+        x-go-name: GmtOffset
+      limitVirtualStart:
+        type: boolean
+        x-go-name: LimitVirtualStart
+      noEndTime:
+        type: boolean
+        x-go-name: NoEndTime
       supertaskList:
         items:
           $ref: '#/definitions/SupertaskInContestInfo'
         type: array
         x-go-name: SupertaskList
+      virtualParticipation:
+        type: boolean
+        x-go-name: VirtualParticipation
+      virtualStartEndTime:
+        format: date-time
+        type: string
+        x-go-name: VirtualStartEndTime
     type: object
     x-go-package: codestep/db
   ContestResults:
@@ -142,6 +167,14 @@ definitions:
       contestName:
         type: string
         x-go-name: ContestName
+      contestStartTime:
+        format: date-time
+        type: string
+        x-go-name: ContestStartTime
+      gmtOffset:
+        format: int32
+        type: integer
+        x-go-name: GmtOffset
       userRightsBitmask:
         format: int32
         type: integer
@@ -695,6 +728,10 @@ definitions:
       contestDesc:
         type: string
         x-go-name: ContestDesc
+      contestDuration:
+        format: int32
+        type: integer
+        x-go-name: ContestDuration
       contestId:
         format: int32
         type: integer
@@ -705,11 +742,30 @@ definitions:
       contestName:
         type: string
         x-go-name: ContestName
+      contestStartTime:
+        type: string
+        x-go-name: ContestStartTime
+      gmtOffset:
+        format: int32
+        type: integer
+        x-go-name: GmtOffset
+      limitVirtualStart:
+        type: boolean
+        x-go-name: LimitVirtualStart
+      noEndTime:
+        type: boolean
+        x-go-name: NoEndTime
       supertaskList:
         items:
           $ref: '#/definitions/SupertaskIdAndVersionNumber'
         type: array
         x-go-name: SupertaskList
+      virtualParticipation:
+        type: boolean
+        x-go-name: VirtualParticipation
+      virtualStartEndTime:
+        type: string
+        x-go-name: VirtualStartEndTime
     type: object
     x-go-package: codestep/services
   SaveContestResponse:
@@ -1001,8 +1057,7 @@ definitions:
         type: integer
         x-go-name: AuthorUserId
       authorUserName:
-        format: int32
-        type: integer
+        type: string
         x-go-name: AuthorUserName
       commitMessage:
         type: string

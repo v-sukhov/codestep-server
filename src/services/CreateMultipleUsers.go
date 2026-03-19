@@ -100,7 +100,7 @@ func CreateMultipleUsers(w http.ResponseWriter, r *http.Request) {
 
 	rows, errNum := parseCreateUsersInputFile(file)
 
-	err, dbErrRowsNum := db.CreateMultipleInternalUsers(rows)
+	dbErrRowsNum, err := db.CreateMultipleInternalUsers(rows)
 
 	errNum += dbErrRowsNum
 

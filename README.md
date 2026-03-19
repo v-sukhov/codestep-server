@@ -58,7 +58,7 @@ https://github.com/go-swagger/go-swagger
 
 ## Выпуск и обновление сертификата Let's encrypt от Яндекс-Облака
 
-1. Получить OAuth-токен, как написано здесь (он не должен меняться вообще-то):
+1. Получить OAuth-токен, как написано здесь (он меняется редко, вроде бы раз в год):
 
 https://yandex.cloud/ru/docs/iam/operations/iam-token/create#api_1
 

@@ -233,11 +233,11 @@ func GetSupertaskAllTasksResults(
 				contest_id = $3
 		`, supertaskId, userId, contestId)
 
-	defer rows.Close()
-
 	if err != nil {
 		return
 	}
+
+	defer rows.Close()
 
 	allTasksResult.TaskResults = make([]TaskResult, 0)
 

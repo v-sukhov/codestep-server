@@ -1,0 +1,1 @@
+liquibase rollbackCount 1

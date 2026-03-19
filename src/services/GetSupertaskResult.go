@@ -1,5 +1,9 @@
 package services
 
+/**
+Запрос результата пользователя по данной подзадаче данной задачи в данном контесте.
+*/
+
 import (
 	"codestep/db"
 	"codestep/security"

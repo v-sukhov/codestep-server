@@ -28,7 +28,7 @@ type ManageUserContestRightsOutputRow struct {
 /*
 Создаёт пользователей с user_type=2
 */
-func CreateMultipleInternalUsers(rows []CreateUserAnswerRow) (err error, errorRowsNum int) {
+func CreateMultipleInternalUsers(rows []CreateUserAnswerRow) (errorRowsNum int, err error) {
 	stmt, err := db.Prepare("INSERT INTO T_USER(login, password_sha256, user_type) VALUES($1, sha256($2), 2)")
 
 	if err != nil {

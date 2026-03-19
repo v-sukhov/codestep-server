@@ -8,22 +8,33 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Contest struct {
-	ContestId       int32                    `json:"contestId"`
-	ContestName     string                   `json:"contestName"`
-	ContestDesc     string                   `json:"contestDesc"`
-	ContestLogoHref string                   `json:"contestLogoHref"`
-	SupertaskList   []SupertaskInContestInfo `json:"supertaskList"`
+	ContestId            int32                    `json:"contestId"`
+	ContestName          string                   `json:"contestName"`
+	ContestDesc          string                   `json:"contestDesc"`
+	ContestLogoHref      string                   `json:"contestLogoHref"`
+	ContestStartTime     *time.Time               `json:"contestStartTime"`
+	GmtOffset            int32                    `json:"gmtOffset"`
+	ContestDuration      int32                    `json:"contestDuration"`
+	NoEndTime            bool                     `json:"noEndTime"`
+	VirtualParticipation bool                     `json:"virtualParticipation"`
+	LimitVirtualStart    bool                     `json:"limitVirtualStart"`
+	VirtualStartEndTime  *time.Time               `json:"virtualStartEndTime"`
+	SupertaskList        []SupertaskInContestInfo `json:"supertaskList"`
 }
 
 type ContestWithRights struct {
-	ContestId         int32  `json:"contestId"`
-	ContestName       string `json:"contestName"`
-	ContestDesc       string `json:"contestDesc"`
-	ContestLogoHref   string `json:"contestLogoHref"`
-	UserRightsBitmask int32  `json:"userRightsBitmask"`
+	ContestId            int32      `json:"contestId"`
+	ContestName          string     `json:"contestName"`
+	ContestDesc          string     `json:"contestDesc"`
+	ContestLogoHref      string     `json:"contestLogoHref"`
+	ContestStartTime     *time.Time `json:"contestStartTime"`
+	GmtOffset            int32      `json:"gmtOffset"`
+	VirtualParticipation bool       `json:"virtualParticipation"`
+	UserRightsBitmask    int32      `json:"userRightsBitmask"`
 }
 
 type SupertaskInContestInfo struct {
@@ -76,9 +87,28 @@ func SaveContest(contest *Contest, userId int32) error {
 		}
 		defer tx.Rollback()
 
-		err = tx.QueryRow(`INSERT INTO T_CONTEST(CONTEST_NAME, CONTEST_DESC, CONTEST_LOGO_HREF)
-							VALUES($1,$2,$3) RETURNING CONTEST_ID`,
-			contest.ContestName, contest.ContestDesc, contest.ContestLogoHref).
+		err = tx.QueryRow(`INSERT INTO T_CONTEST(
+							CONTEST_NAME,
+							CONTEST_DESC,
+							CONTEST_LOGO_HREF,
+							CONTEST_START_TIME,
+							GMT_OFFSET,
+							CONTEST_DURATION,
+							NO_END_TIME,
+							VIRTUAL_PARTICIPATION,
+							LIMIT_VIRTUAL_START,
+							VIRTUAL_START_END_TIME)
+						VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING CONTEST_ID`,
+			contest.ContestName,
+			contest.ContestDesc,
+			contest.ContestLogoHref,
+			contest.ContestStartTime,
+			contest.GmtOffset,
+			contest.ContestDuration,
+			contest.NoEndTime,
+			contest.VirtualParticipation,
+			contest.LimitVirtualStart,
+			contest.VirtualStartEndTime).
 			Scan(&contest.ContestId)
 
 		if err != nil {
@@ -95,12 +125,19 @@ func SaveContest(contest *Contest, userId int32) error {
 		tx.Commit()
 	} else {
 		res, err := db.Exec(`UPDATE T_CONTEST
-						SET CONTEST_NAME = $1,
-							CONTEST_DESC = $2,
-							CONTEST_LOGO_HREF = $3
-						WHERE
-							CONTEST_ID = $4
-						`, contest.ContestName, contest.ContestDesc, contest.ContestLogoHref, contest.ContestId)
+					SET CONTEST_NAME = $1,
+						CONTEST_DESC = $2,
+						CONTEST_LOGO_HREF = $3,
+						CONTEST_START_TIME = $4,
+						GMT_OFFSET = $5,
+						CONTEST_DURATION = $6,
+						NO_END_TIME = $7,
+						VIRTUAL_PARTICIPATION = $8,
+						LIMIT_VIRTUAL_START = $9,
+						VIRTUAL_START_END_TIME = $10
+					WHERE
+						CONTEST_ID = $11
+					`, contest.ContestName, contest.ContestDesc, contest.ContestLogoHref, contest.ContestStartTime, contest.GmtOffset, contest.ContestDuration, contest.NoEndTime, contest.VirtualParticipation, contest.LimitVirtualStart, contest.VirtualStartEndTime, contest.ContestId)
 		if err != nil {
 			return err
 		}
@@ -131,7 +168,14 @@ func GetContest(contestId int32) (contest Contest, err error) {
 				CONTEST_ID,
 				CONTEST_NAME,
 				CONTEST_DESC,
-				CONTEST_LOGO_HREF
+				CONTEST_LOGO_HREF,
+				CONTEST_START_TIME,
+				GMT_OFFSET,
+				CONTEST_DURATION,
+				NO_END_TIME,
+				VIRTUAL_PARTICIPATION,
+				LIMIT_VIRTUAL_START,
+				VIRTUAL_START_END_TIME
 			FROM
 				T_CONTEST
 			WHERE
@@ -141,6 +185,13 @@ func GetContest(contestId int32) (contest Contest, err error) {
 		&contest.ContestName,
 		&contest.ContestDesc,
 		&contest.ContestLogoHref,
+		&contest.ContestStartTime,
+		&contest.GmtOffset,
+		&contest.ContestDuration,
+		&contest.NoEndTime,
+		&contest.VirtualParticipation,
+		&contest.LimitVirtualStart,
+		&contest.VirtualStartEndTime,
 	)
 	if err != nil {
 		return
@@ -156,6 +207,9 @@ func GetContest(contestId int32) (contest Contest, err error) {
 	return
 }
 
+/*
+Список контестов, доступных данному пользователю
+*/
 func GetUserContestList(userId int32) (contests []ContestWithRights, err error) {
 	rows, err := db.Query(`
 		select
@@ -163,6 +217,9 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 			c.contest_name,
 			c.contest_desc,
 			c.contest_logo_href,
+			c.contest_start_time,
+			c.gmt_offset,
+			c.virtual_participation,
 			ur.user_contest_rights_bitmask
 		from
 			t_contest c join
@@ -197,6 +254,9 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 			&contest.ContestName,
 			&contest.ContestDesc,
 			&contest.ContestLogoHref,
+			&contest.ContestStartTime,
+			&contest.GmtOffset,
+			&contest.VirtualParticipation,
 			&contest.UserRightsBitmask,
 		); err != nil {
 			return
@@ -241,7 +301,7 @@ func GetContestUserRights(userId int32, contestId int32) (rightsBitmask int32, e
 func AddSupertaskToContest(contestId int32, supertaskId int32, supertaskVersionNumber int32) (orderNumber int16, err error) {
 
 	if supertaskVersionNumber <= 0 {
-		err = errors.New("Supertask version number should be larger than zero")
+		err = errors.New("supertask version number should be larger than zero")
 		return
 	}
 

@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+// TODO: Добавить контроль времени
+
 type GetSupertaskSolutionRequest struct {
 	SupertaskId    int32 `json:"supertaskId"`
 	TaskNum        int16 `json:"taskNum"`
