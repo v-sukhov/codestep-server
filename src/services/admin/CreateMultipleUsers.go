@@ -1,9 +1,10 @@
-package services
+package admin
 
 import (
 	"bufio"
 	"codestep/db"
 	"codestep/security"
+	"codestep/utils"
 	"fmt"
 	"io"
 	"log"
@@ -18,7 +19,7 @@ func checkLogin(login string) bool {
 	return validLoginRegexp.MatchString(login)
 }
 
-func parseCreateUsersInputFile(file io.Reader) (rows []db.CreateUserAnswerRow, errNum int) {
+func parseCreateUsersInputFile(file io.Reader) (rows []db.CreateUserAnswerRow, errNum int, err error) {
 	rows = make([]db.CreateUserAnswerRow, 0)
 
 	scanner := bufio.NewScanner(file)
@@ -29,7 +30,7 @@ func parseCreateUsersInputFile(file io.Reader) (rows []db.CreateUserAnswerRow, e
 		if len(login) > 0 {
 			if checkLogin(login) {
 				row.Login = login
-				row.Password = generatePassword()
+				row.Password = utils.GeneratePassword()
 			} else {
 				row.IsError = true
 				row.ErrorMessage = "Неправильный формат логина. Допускаются только символы a-z, 0-9, - и _. Указанный логин: " + login
@@ -39,7 +40,11 @@ func parseCreateUsersInputFile(file io.Reader) (rows []db.CreateUserAnswerRow, e
 		}
 	}
 
-	return
+	if err = scanner.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return rows, errNum, nil
 }
 
 func printLoginPasswordRowsToBytes(rows []db.CreateUserAnswerRow, errNum int) []byte {
@@ -98,7 +103,12 @@ func CreateMultipleUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	rows, errNum := parseCreateUsersInputFile(file)
+	rows, errNum, err := parseCreateUsersInputFile(file)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	dbErrRowsNum, err := db.CreateMultipleInternalUsers(rows)
 

@@ -1,4 +1,4 @@
-package services
+package contest
 
 import (
 	"codestep/db"
@@ -9,39 +9,37 @@ import (
 	"net/http"
 )
 
-type AddSupertaskToContestRequest struct {
-	ContestId              int32 `json:"contestId"`
-	SupertaskId            int32 `json:"supertaskId"`
-	SupertaskVersionNumber int32 `json:"supertaskVersionNumber"`
+type RemoveSupertaskFromContestRequest struct {
+	ContestId   int32 `json:"contestId"`
+	SupertaskId int32 `json:"supertaskId"`
 }
 
-type AddSupertaskToContestData struct {
-	OrderNumber int16 `json:"orderNumber"`
+type RemoveSupertaskFromContestData struct {
 }
 
-type AddSupertaskToContestResponse struct {
-	Success bool                      `json:"success"`
-	Message string                    `json:"message"`
-	Data    AddSupertaskToContestData `json:"data"`
+type RemoveSupertaskFromContestResponse struct {
+	Success bool                           `json:"success"`
+	Message string                         `json:"message"`
+	Data    RemoveSupertaskFromContestData `json:"data"`
 }
 
-func AddSupertaskToContest(w http.ResponseWriter, r *http.Request) {
+func RemoveSupertaskFromContest(w http.ResponseWriter, r *http.Request) {
 
-	var request AddSupertaskToContestRequest
-	var response AddSupertaskToContestResponse
+	var request RemoveSupertaskFromContestRequest
+	var response RemoveSupertaskFromContestResponse
 
 	w.Header().Set("Content-Type", "application/json")
 
 	userId := r.Context().Value(security.ContextUserIdKey).(int32)
 
 	if body, err := io.ReadAll(r.Body); err != nil {
-		response = AddSupertaskToContestResponse{
+		response = RemoveSupertaskFromContestResponse{
 			Success: false,
 			Message: "Body reading failed",
 		}
 	} else {
 		if err := json.Unmarshal(body, &request); err != nil {
-			response = AddSupertaskToContestResponse{
+			response = RemoveSupertaskFromContestResponse{
 				Success: false,
 				Message: "JSON decoding failed",
 			}
@@ -50,29 +48,27 @@ func AddSupertaskToContest(w http.ResponseWriter, r *http.Request) {
 			userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
 
 			if err != nil {
-				response = AddSupertaskToContestResponse{
+				response = RemoveSupertaskFromContestResponse{
 					Success: false,
 					Message: err.Error(),
 				}
 			} else if userContestRights&3 == 0 {
 				// 3 = 00..011 = 1 + 2 - owner and admin
-				response = AddSupertaskToContestResponse{
+				response = RemoveSupertaskFromContestResponse{
 					Success: false,
 					Message: "User does not have admin right on contest",
 				}
 			} else {
-				orderNumber, err := db.AddSupertaskToContest(request.ContestId, request.SupertaskId, request.SupertaskVersionNumber)
+				err := db.RemoveSupertaskFromContest(request.ContestId, request.SupertaskId)
 
 				if err != nil {
-					response = AddSupertaskToContestResponse{
+					response = RemoveSupertaskFromContestResponse{
 						Success: false,
 						Message: err.Error(),
 					}
 				} else {
-					data := AddSupertaskToContestData{
-						OrderNumber: orderNumber,
-					}
-					response = AddSupertaskToContestResponse{
+					data := RemoveSupertaskFromContestData{}
+					response = RemoveSupertaskFromContestResponse{
 						Success: true,
 						Message: "OK",
 						Data:    data,

@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest_participation "codestep/services/contest_participation"
 )
 
 // swagger:route POST /api/protected/get-contest-supertask-list get-contest-supertask-list idOfGetContestSupertaskListEndpoint
@@ -12,12 +12,12 @@ import (
 // swagger:parameters idOfGetContestSupertaskListEndpoint
 type getContestSupertaskListRequestWrapper struct {
 	// in:body
-	Body services.GetContestSupertaskListRequest
+	Body contest_participation.GetContestSupertaskListRequest
 }
 
 // Get contest supertask list sorted by order_number
 // swagger:response getContestSupertaskListResponse
 type getContestSupertaskListResponseWrapper struct {
 	// in:body
-	Body services.GetContestSupertaskListResponse
+	Body contest_participation.GetContestSupertaskListResponse
 }

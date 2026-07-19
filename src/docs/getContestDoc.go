@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest "codestep/services/contest"
 )
 
 // swagger:route POST /api/protected/get-contest get-contest idOfGetContestEndpoint
@@ -12,12 +12,13 @@ import (
 // swagger:parameters idOfGetContestEndpoint
 type getContestRequestWrapper struct {
 	// in:body
-	Body services.GetContestRequest
+	Body contest.GetContestRequest
 }
 
 // Возвращает данные контеста
 // swagger:response getContestResponse
 type getContestResponseWrapper struct {
 	// in:body
-	Body services.GetContestResponse
+	Body contest.GetContestResponse
 }
+

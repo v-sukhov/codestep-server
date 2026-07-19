@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest "codestep/services/contest"
 )
 
 // swagger:route POST /api/protected/save-contest save-contest idOfSaveContestEndpoint
@@ -13,12 +13,13 @@ import (
 // swagger:parameters idOfSaveContestEndpoint
 type saveContesttWrapper struct {
 	// in:body
-	Body services.SaveContestRequest
+	Body contest.SaveContestRequest
 }
 
 // Save contest success
 // swagger:response saveContestResponse
 type saveContestWrapper struct {
 	// in:body
-	Body services.SaveContestResponse
+	Body contest.SaveContestResponse
 }
+

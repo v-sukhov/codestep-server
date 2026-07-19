@@ -1,11 +1,43 @@
-package services
+package contest_participation
 
 import (
 	"codestep/db"
+	"time"
 )
 
+type AccessWithReason string
+
+const (
+	AccessDeniedNoStartTime       AccessWithReason = "AccessDeniedNoStartTime"
+	AccessDeniedContestNotStarted AccessWithReason = "AccessDeniedContestNotStarted"
+	AccessDeniedStartNotAllowed   AccessWithReason = "AccessDeniedStartNotAllowed"
+	AccessDeniedUserFinished      AccessWithReason = "AccessDeniedUserFinished"
+	AccessAllowed                 AccessWithReason = "AccessAllowed"
+	BoundedAccessNamesAndResults  AccessWithReason = "BoundedAccessNamesAndResults"
+	AccessDeniedReasonUnknown     AccessWithReason = "AccessDeniedReasonUnknown"
+)
+
+func ResolveAccessWithReason(access bool, info db.UserContestParticipationInfo) AccessWithReason {
+	if access {
+		return AccessAllowed
+	}
+	if info.Status == db.UserFinished {
+		return AccessDeniedUserFinished
+	}
+	if info.ContestStartTime.IsZero() {
+		return AccessDeniedNoStartTime
+	}
+	if info.ContestStartTime.After(time.Now()) {
+		return AccessDeniedContestNotStarted
+	}
+	if info.LimitVirtualStart && info.VirtualStartEndTime.Before(time.Now()) {
+		return AccessDeniedStartNotAllowed
+	}
+	return AccessDeniedReasonUnknown
+}
+
 /*
-CheckContestTimeAccess проверяет доступ пользователя к контесту по времени.
+CheckContestAccess проверяет доступ пользователя к контесту по времени и правам.
 
 Логика проверки:
  1. Для владельца и администратора (права 1 и 2) - доступ всегда разрешен
@@ -18,11 +50,14 @@ CheckContestTimeAccess проверяет доступ пользователя 
 - info: информация о статусе участия пользователя в контесте
 - err: ошибка при проверке прав или статуса участия
 */
-func CheckContestTimeAccess(userId int32, contestId int32) (access bool, info db.UserContestParticipationInfo, err error) {
+func CheckContestAccess(userId int32, contestId int32) (access bool, info db.UserContestParticipationInfo, err error) {
 	userContestRights, err := db.GetContestUserRights(userId, contestId)
 	if err != nil {
 		return false, info, err
 	}
+
+	info.UserContestRights = db.NewUserContestRights(userContestRights)
+	userContestRightsInfo := info.UserContestRights
 
 	if userContestRights == 0 {
 		return false, info, nil
@@ -32,6 +67,7 @@ func CheckContestTimeAccess(userId int32, contestId int32) (access bool, info db
 	if err != nil {
 		return false, info, err
 	}
+	info.UserContestRights = userContestRightsInfo
 
 	// Владелец (1) и администратор (2) - доступ всегда разрешен
 	if userContestRights&3 > 0 {
@@ -57,10 +93,13 @@ func CheckContestTimeAccess(userId int32, contestId int32) (access bool, info db
 			access = true
 		case db.UserNotStartedStartAllowed:
 			// Автоматически стартуем контест для пользователя
-			if err := db.StartContestForUser(userId, contestId); err != nil {
+			userStartTime, userFactStartTime, err := db.StartContestForUser(userId, contestId)
+			if err != nil {
 				return false, info, err
 			}
 			info.Status = db.UserParticipating
+			info.UserStartTime = userStartTime
+			info.UserFactStartTime = userFactStartTime
 			access = true
 		default:
 			access = false

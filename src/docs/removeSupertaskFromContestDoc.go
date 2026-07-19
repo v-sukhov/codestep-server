@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest "codestep/services/contest"
 )
 
 // swagger:route POST /api/protected/remove-supertask-from-contest remove-supertask-from-contest idOfRemoveSupertaskFromContestEndpoint
@@ -12,12 +12,13 @@ import (
 // swagger:parameters idOfRemoveSupertaskFromContestEndpoint
 type removeSupertaskFromContestRequestWrapper struct {
 	// in:body
-	Body services.RemoveSupertaskFromContestRequest
+	Body contest.RemoveSupertaskFromContestRequest
 }
 
 // Remove supertask from contest
 // swagger:response removeSupertaskFromContestResponse
 type removeSupertaskFromContestResponseWrapper struct {
 	// in:body
-	Body services.RemoveSupertaskFromContestResponse
+	Body contest.RemoveSupertaskFromContestResponse
 }
+

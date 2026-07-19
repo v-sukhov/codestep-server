@@ -7,7 +7,11 @@ database_host = localhost
 database_port = 5432
 database_dbname = 
 database_user = 
-database_password = 
+database_password =
+# liquibase_update = yes to run "liquibase update" command
+liquibase_update = 
+# relative path from current dir to jdbc driver file to run liquibase update
+jdbc_driver_file = 
 
 # password encryption secrete word
 encryption_salt_word = 

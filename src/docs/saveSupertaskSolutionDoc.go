@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest_participation "codestep/services/contest_participation"
 )
 
 // swagger:route POST /api/protected/save-supertask-solution save-supertask-solution idOfSaveSupertaskSolutionEndpoint
@@ -12,12 +12,12 @@ import (
 // swagger:parameters idOfSaveSupertaskSolutionEndpoint
 type saveSupertaskSolutionRequestWrapper struct {
 	// in:body
-	Body services.SaveSupertaskSolutionRequest
+	Body contest_participation.SaveSupertaskSolutionRequest
 }
 
 // Save supertask solution success
 // swagger:response saveSupertaskSolutionResponse
 type saveSupertaskSolutionWrapper struct {
 	// in:body
-	Body services.SaveSupertaskSolutionResponse
+	Body contest_participation.SaveSupertaskSolutionResponse
 }

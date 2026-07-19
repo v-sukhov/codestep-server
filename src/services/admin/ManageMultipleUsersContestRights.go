@@ -1,4 +1,4 @@
-package services
+package admin
 
 import (
 	"bufio"
@@ -44,7 +44,7 @@ type ManageMultipleUsersContestRightsResponse struct {
 	Добавить проверку на существование контеста contest_id
 */
 
-func parseManageUserContestRightsInputFile(file io.Reader) (rows []db.ManageUserContestRightsRow) {
+func parseManageUserContestRightsInputFile(file io.Reader) (rows []db.ManageUserContestRightsRow, err error) {
 	rows = make([]db.ManageUserContestRightsRow, 0)
 
 	scanner := bufio.NewScanner(file)
@@ -95,7 +95,11 @@ func parseManageUserContestRightsInputFile(file io.Reader) (rows []db.ManageUser
 		rows = append(rows, row)
 	}
 
-	return rows
+	if err = scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }
 
 func ManageMultipleUsersContestRights(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +133,13 @@ func ManageMultipleUsersContestRights(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			defer file.Close()
-			rows := parseManageUserContestRightsInputFile(file)
+			rows, err := parseManageUserContestRightsInputFile(file)
+			if err != nil {
+				response = ManageMultipleUsersContestRightsResponse{
+					Success: false,
+					Message: err.Error(),
+				}
+			} else {
 			err = db.ManageUserContestRights(rows)
 			if err != nil {
 				response = ManageMultipleUsersContestRightsResponse{
@@ -156,6 +166,7 @@ func ManageMultipleUsersContestRights(w http.ResponseWriter, r *http.Request) {
 						RowError: rowError,
 					},
 				}
+			}
 			}
 		}
 

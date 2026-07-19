@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	contest "codestep/services/contest"
 )
 
 // swagger:route POST /api/protected/get-contest-results-file get-contest-results-file idOfGetContestResultsFileEndpoint
@@ -12,7 +12,7 @@ import (
 // swagger:parameters idOfGetContestResultsFileEndpoint
 type getContestResultsFileRequestWrapper struct {
 	// in:body
-	Body services.GetContestResultsFileRequest
+	Body contest.GetContestResultsFileRequest
 }
 
 // Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
@@ -20,3 +20,4 @@ type getContestResultsFileRequestWrapper struct {
 type getContestResultsFileResponseWrapper struct {
 	// in:body
 }
+

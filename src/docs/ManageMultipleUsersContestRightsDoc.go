@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	admin "codestep/services/admin"
 )
 
 // swagger:route POST /api/protected/upload-manage-multiple-users-contest-rights upload-manage-multiple-users-contest-rights idOfManageMultipleUsersContestRightsEndpoint
@@ -27,5 +27,6 @@ type manageMultipleUsersContestRightsRequestWrapper struct {
 // swagger:response manageMultipleUsersContestRightsResponse
 type manageMultipleUsersContestRightsResponseWrapper struct {
 	// in:body
-	Body services.ManageMultipleUsersContestRightsResponse
+	Body admin.ManageMultipleUsersContestRightsResponse
 }
+

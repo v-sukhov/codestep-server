@@ -1,4 +1,4 @@
-package services
+package admin
 
 import (
 	"io"
@@ -12,7 +12,7 @@ var TmpDirPath string
 // 1MB
 const MAX_UPLOADING_FILE_SIZE_BYTES = 1 << 20
 
-func uploadFile(w http.ResponseWriter, r *http.Request, formFileName string) (tempFile *os.File, originalFilename string, err error) {
+func uploadFile(_ http.ResponseWriter, r *http.Request, formFileName string) (tempFile *os.File, originalFilename string, err error) {
 	r.ParseMultipartForm(MAX_UPLOADING_FILE_SIZE_BYTES)
 
 	file, handler, err := r.FormFile(formFileName)

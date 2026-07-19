@@ -1,4 +1,4 @@
-package services
+package contest_participation
 
 import (
 	"codestep/db"
@@ -15,6 +15,11 @@ import (
 	Доступ к данным для участников и жюри ограничивается временем старта контеста:
 		- для жюри доступ только после старта контеста
 		- для участников - только во время участия, вызов сервиса вызывает старт участия, если он возможен
+	Для участников предусмотрен ограниченный доступ к списку задач: список задач доступен и по ним можно
+	получить результаты (отдельным сервисом), но нельзя зайти в задачу и решать её (это маркер для фронтенда, какие функции доступны
+	для пользователя). Такой вариант доступа обозначается как BoundedAccessNamesAndResults и возникает после завершения пользователем
+	контеста, если заданы соответствующие параметры контеста.
+
 	Доступ для владельца и администраторов не ограничен по времени.
 	*******************************************
 */
@@ -23,18 +28,10 @@ type GetContestSupertaskListRequest struct {
 	ContestId int32 `json:"contestId"`
 }
 
-type UserContestRights struct {
-	IsOwner       bool `json:"isOwner"`
-	IsAdmin       bool `json:"isAdmin"`
-	IsJury        bool `json:"isJury"`
-	IsParticipant bool `json:"isParticipant"`
-}
-
 type GetContestSupertaskListData struct {
-	Success           bool                            `json:"success"`
-	SupertasksList    []db.SupertaskInContestInfo     `json:"supertaskList"`
-	UserContestRights UserContestRights               `json:"userContestRights"`
-	Info              db.UserContestParticipationInfo `json:"userContestParticipationInfo"`
+	AccessWithReason AccessWithReason                `json:"accessWithReason"`
+	SupertasksList   []db.SupertaskInContestInfo     `json:"supertaskList"`
+	Info             db.UserContestParticipationInfo `json:"userContestParticipationInfo"`
 }
 
 type GetContestSupertaskListResponse struct {
@@ -81,7 +78,8 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userContestRights, err := db.GetContestUserRights(userId, request.ContestId)
+	// Проверка доступа к контесту по времени и правам
+	access, info, err := CheckContestAccess(userId, request.ContestId)
 	if err != nil {
 		response = GetContestSupertaskListResponse{
 			Success: false,
@@ -91,7 +89,7 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userContestRights == 0 {
+	if info.UserContestRights.IsEmpty() {
 		response = GetContestSupertaskListResponse{
 			Success: false,
 			Message: "User does not have rights on contest",
@@ -100,20 +98,11 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверка доступа к контесту по времени
-	access, info, err := CheckContestTimeAccess(userId, request.ContestId)
-	if err != nil {
-		response = GetContestSupertaskListResponse{
-			Success: false,
-			Message: err.Error(),
-		}
-		writeResponse(w, response)
-		return
-	}
-
 	var supertaskList []db.SupertaskInContestInfo
 
-	if access {
+	accessWithReason := ResolveAccessWithReason(access, info)
+
+	if accessWithReason == AccessAllowed {
 		if supertaskList, err = db.GetContestSupertaskList(request.ContestId); err != nil {
 			response = GetContestSupertaskListResponse{
 				Success: false,
@@ -125,15 +114,9 @@ func GetContestSupertaskList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := GetContestSupertaskListData{
-		Success:        access,
-		SupertasksList: supertaskList,
-		UserContestRights: UserContestRights{
-			IsOwner:       (userContestRights&1 > 0),
-			IsAdmin:       (userContestRights&2 > 0),
-			IsJury:        (userContestRights&4 > 0),
-			IsParticipant: (userContestRights&8 > 0),
-		},
-		Info: info,
+		AccessWithReason: accessWithReason,
+		SupertasksList:   supertaskList,
+		Info:             info,
 	}
 	response = GetContestSupertaskListResponse{
 		Success: true,

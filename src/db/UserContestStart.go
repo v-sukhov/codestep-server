@@ -27,8 +27,8 @@ package db
 	Время окончания соревнования для которого разрешён плаваюший старта определяется по полям LIMIT_VIRTUAL_START + CONTEST_DURATION.
 	Время начала участия пользователя в соревновании определяется по полю USER_START_TIME таблицы T_USER_CONTEST_START.
 	Если запись для данного пользователя и соревнования не существует, то пользователь не стартовал соревнование.
-	Время окончания участия пользователя в соревновании определяется по полям USER_START_TIME таблицы T_USER_CONTEST_START
-	и CONTEST_DURATION таблицы T_CONTEST.
+	Время окончания участия пользователя в соревновании определяется по полям USER_START_TIME таблицы T_USER_CONTEST_START,
+	CONTEST_DURATION таблицы T_CONTEST и ADDED_TIME_SEC таблицы T_USER_CONTEST_START.
 
 	Возвращает вычисленный статус.
 
@@ -74,9 +74,32 @@ func (s UserContestParticipationStatus) String() string {
 	}
 }
 
+type UserContestRights struct {
+	IsOwner       bool `json:"isOwner"`
+	IsAdmin       bool `json:"isAdmin"`
+	IsJury        bool `json:"isJury"`
+	IsParticipant bool `json:"isParticipant"`
+}
+
+func NewUserContestRights(bitmask int32) UserContestRights {
+	return UserContestRights{
+		IsOwner:       bitmask&1 > 0,
+		IsAdmin:       bitmask&2 > 0,
+		IsJury:        bitmask&4 > 0,
+		IsParticipant: bitmask&8 > 0,
+	}
+}
+
+func (r UserContestRights) IsEmpty() bool {
+	return !r.IsOwner && !r.IsAdmin && !r.IsJury && !r.IsParticipant
+}
+
 type UserContestParticipationInfo struct {
 	// Статус участия пользователя в соревновании
 	Status UserContestParticipationStatus `json:"status"`
+
+	// Права пользователя на контест
+	UserContestRights UserContestRights `json:"userContestRights"`
 
 	// Текущее время
 	CurrentTime time.Time `json:"currentTime"`
@@ -86,6 +109,9 @@ type UserContestParticipationInfo struct {
 
 	// Фактическое время старта пользователя (user_fact_start_time)
 	UserFactStartTime time.Time `json:"userFactStartTime"`
+
+	// Добавленное время участнику в секундах (added_time_sec)
+	AddedTimeSec int32 `json:"addedTimeSec"`
 
 	// Время старта соревнования (contest_start_time)
 	ContestStartTime time.Time `json:"contestStartTime"`
@@ -110,23 +136,24 @@ type UserContestParticipationInfo struct {
 func StartContestForUser(
 	userId int32,
 	contestId int32,
-) error {
+) (userStartTime time.Time, userFactStartTime time.Time, err error) {
 	now := time.Now().UTC()
-	var userStartTime time.Time
+	userFactStartTime = now
 	var contestStartTime sql.NullTime
 	var virtualParticipation bool
-	err := db.QueryRow(`
+	err = db.QueryRow(`
 		SELECT contest_start_time, virtual_participation
 		FROM t_contest
 		WHERE contest_id = $1
 	`, contestId).Scan(&contestStartTime, &virtualParticipation)
 	if err != nil {
-		return err
+		return
 	}
 	if !virtualParticipation {
 		// Если не разрешён плавающий старт, отсчётное время = время старта соревнования
 		if !contestStartTime.Valid {
-			return fmt.Errorf("Contest start not allowed: contest start time is not set for contest_id=%d", contestId)
+			err = fmt.Errorf("Contest start not allowed: contest start time is not set for contest_id=%d", contestId)
+			return
 		}
 		userStartTime = contestStartTime.Time
 	} else {
@@ -138,15 +165,16 @@ func StartContestForUser(
 	_, err = db.Exec(`
 		INSERT INTO t_user_contest_start (user_id, contest_id, user_start_time, user_fact_start_time)
 		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (user_id, contest_id) DO NOTHING
-	`, userId, contestId, userStartTime, now)
-	return err
+		ON CONFLICT (user_id, contest_id) DO 
+		UPDATE SET user_start_time = $3, user_fact_start_time = $4
+	`, userId, contestId, userStartTime, userFactStartTime)
+	return
 }
 
 // GetUserContestParticipationStatus возвращает статус участия пользователя в соревновании
 // Функция делает 2 запроса к БД
 // Предполагается, что она должна редко вызываться, а в основном при работе с контестом информация должна браться из кэша
-// Кэша нет, его ещё надо сделать
+// TODO: Кэша нет, его ещё надо сделать
 func GetUserContestParticipationStatus(userId int32, contestId int32) (info UserContestParticipationInfo, err error) {
 	// Получаем информацию о соревновании
 	var contestStartTime sql.NullTime
@@ -194,11 +222,12 @@ func GetUserContestParticipationStatus(userId int32, contestId int32) (info User
 	// Получаем запись о старте пользователя
 	var userStartTime sql.NullTime
 	var userFactStartTime sql.NullTime
+	var addedTimeSec int32
 	err = db.QueryRow(`
-		SELECT user_start_time, user_fact_start_time
+		SELECT user_start_time, user_fact_start_time, COALESCE(added_time_sec, 0)
 		FROM t_user_contest_start
 		WHERE user_id = $1 AND contest_id = $2
-	`, userId, contestId).Scan(&userStartTime, &userFactStartTime)
+	`, userId, contestId).Scan(&userStartTime, &userFactStartTime, &addedTimeSec)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
@@ -215,44 +244,60 @@ func GetUserContestParticipationStatus(userId int32, contestId int32) (info User
 	info.VirtualStartEndTime = virtualStartEndTime.Time
 	info.UserStartTime = userStartTime.Time
 	info.UserFactStartTime = userFactStartTime.Time
+	info.AddedTimeSec = addedTimeSec
 
 	if contestBegin.IsZero() || now.Before(contestBegin) {
 		// 1. Если соревнование не началось или не задано время старта - возвращаем ContestNotStarted
 		info.Status = ContestNotStarted
-		return
 	} else if !contestEnd.IsZero() && contestEnd.Before(now) {
 		// 2. Если определено время завершения контеста и оно в прошлом - контест закончился
 		info.Status = ContestFinished
-		return
 	} else if !userHasStarted {
 		// 3. Соревнование началось, ещё не закончилось и пользователь ещё не стартовал
 		if !virtualParticipation {
 			// Если запрещён плавающий старт - можно стартовать
 			info.Status = UserNotStartedStartAllowed
-			return
 		} else {
 			// Если разрешён плавающий старт - тогда можно стартовать, если либо время завершения плавающего старта не ограничено,
 			// либо оно ещё не прошло
 			if !limitVirtualStart || !virtualStartEndTime.Time.Before(now) {
 				info.Status = UserNotStartedStartAllowed
-				return
 			} else {
 				info.Status = UserNotStartedStartNotAllowed
-				return
 			}
 		}
 	} else {
 		// 4. Соревнование началось, ещё не закончилось и пользователь его стартовал
 		// Пользователь участвует в соревновании, если оно бесконечное или ещё не вышло время соревнования с момента его
-		// отсчётного старта - логика одинаково работает как для обычных соревнований, так и для соревнований с плавающим стартом
-		if noEndTime || now.Before(userStartTime.Time.Add(time.Duration(contestDuration)*time.Minute)) {
+		// отсчётного старта с учётом добавленного времени - логика одинаково работает как для обычных соревнований,
+		// так и для соревнований с плавающим стартом
+		userParticipationEnd := userStartTime.Time.Add(
+			time.Duration(contestDuration)*time.Minute + time.Duration(addedTimeSec)*time.Second,
+		)
+		if noEndTime || now.Before(userParticipationEnd) {
 			info.Status = UserParticipating
-			return
 		} else {
 			info.Status = UserFinished
-			return
 		}
 	}
+
+	return
+}
+
+// GetUserContestParticipationInfo возвращает статус участия пользователя в соревновании вместе с его правами на контест.
+func GetUserContestParticipationInfo(userId int32, contestId int32) (info UserContestParticipationInfo, err error) {
+	info, err = GetUserContestParticipationStatus(userId, contestId)
+	if err != nil {
+		return
+	}
+
+	userContestRights, err := GetContestUserRights(userId, contestId)
+	if err != nil {
+		return
+	}
+
+	info.UserContestRights = NewUserContestRights(userContestRights)
+	return
 }
 
 // TryUserContestAction пытается выполнить действие над соревнованием для пользователя
@@ -260,6 +305,7 @@ func GetUserContestParticipationStatus(userId int32, contestId int32) (info User
 // Возвращает статус участия пользователя
 func TryUserContestAction(userId int32, contestId int32) (UserContestParticipationStatus, error) {
 	info, err := GetUserContestParticipationStatus(userId, contestId)
+
 	if err != nil {
 		return info.Status, err
 	}
@@ -268,7 +314,7 @@ func TryUserContestAction(userId int32, contestId int32) (UserContestParticipati
 		return info.Status, nil
 	case UserNotStartedStartAllowed:
 		// Стартуем соревнование для пользователя
-		err := StartContestForUser(userId, contestId)
+		_, _, err = StartContestForUser(userId, contestId)
 		if err != nil {
 			return info.Status, err
 		}

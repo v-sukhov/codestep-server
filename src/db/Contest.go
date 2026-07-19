@@ -33,7 +33,11 @@ type ContestWithRights struct {
 	ContestLogoHref      string     `json:"contestLogoHref"`
 	ContestStartTime     *time.Time `json:"contestStartTime"`
 	GmtOffset            int32      `json:"gmtOffset"`
+	ContestDuration      int32      `json:"contestDuration"`
+	NoEndTime            bool       `json:"noEndTime"`
 	VirtualParticipation bool       `json:"virtualParticipation"`
+	LimitVirtualStart    bool       `json:"limitVirtualStart"`
+	VirtualStartEndTime  *time.Time `json:"virtualStartEndTime"`
 	UserRightsBitmask    int32      `json:"userRightsBitmask"`
 }
 
@@ -219,7 +223,11 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 			c.contest_logo_href,
 			c.contest_start_time,
 			c.gmt_offset,
+			c.contest_duration,
+			c.no_end_time,
 			c.virtual_participation,
+			c.limit_virtual_start,
+			c.virtual_start_end_time,
 			ur.user_contest_rights_bitmask
 		from
 			t_contest c join
@@ -256,7 +264,11 @@ func GetUserContestList(userId int32) (contests []ContestWithRights, err error) 
 			&contest.ContestLogoHref,
 			&contest.ContestStartTime,
 			&contest.GmtOffset,
+			&contest.ContestDuration,
+			&contest.NoEndTime,
 			&contest.VirtualParticipation,
+			&contest.LimitVirtualStart,
+			&contest.VirtualStartEndTime,
 			&contest.UserRightsBitmask,
 		); err != nil {
 			return

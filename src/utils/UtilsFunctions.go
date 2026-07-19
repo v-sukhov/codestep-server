@@ -3,8 +3,10 @@ package utils
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/mail"
 	"net/smtp"
+	"strconv"
 
 	"github.com/magiconair/properties"
 )
@@ -50,4 +52,9 @@ func GetClientUrl() (string, string, string) {
 	host := p.MustGetString("client_addr")
 	port := p.MustGetString("client_port")
 	return protocol, host, port
+}
+
+func GeneratePassword() string {
+	N := rand.Intn(900000) + 100000
+	return strconv.Itoa(N)
 }

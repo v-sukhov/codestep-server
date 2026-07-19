@@ -9,8 +9,12 @@ import (
 	"github.com/magiconair/properties"
 
 	"codestep/db"
+	"codestep/liquibase"
 	"codestep/security"
-	"codestep/services"
+	"codestep/services/admin"
+	"codestep/services/contest"
+	"codestep/services/contest_participation"
+	"codestep/services/supertask"
 	"codestep/utils"
 
 	_ "codestep/docs"
@@ -50,7 +54,7 @@ func main() {
 	security.JwtRegisterTokenLifetimeMinute = p.MustGetInt("jwt_register_token_lifetime_minute")
 
 	// get dir path
-	services.TmpDirPath = p.MustGetString("tmp_dir")
+	admin.TmpDirPath = p.MustGetString("tmp_dir")
 
 	// Logging settings
 	if p.GetString("cors_log_http", "no") == "yes" {
@@ -71,6 +75,13 @@ func main() {
 		} else {
 			mw := io.MultiWriter(os.Stderr, logFile)
 			log.SetOutput(mw)
+		}
+	}
+
+	if p.GetString("liquibase_update", "no") == "yes" {
+		jdbcDriverFile := p.MustGetString("jdbc_driver_file")
+		if err := liquibase.Update(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword, jdbcDriverFile); err != nil {
+			log.Fatalf("Liquibase update failed: %v", err)
 		}
 	}
 
@@ -103,30 +114,33 @@ func main() {
 	// Logout
 	muxProtected.HandleFunc("/api/protected/logout", security.Logout)
 	// Supertask
-	muxProtected.HandleFunc("/api/protected/save-supertask", services.SaveSupertask)
-	muxProtected.HandleFunc("/api/protected/get-supertask", services.GetSupertask)
-	muxProtected.HandleFunc("/api/protected/get-supertask-versions", services.GetSupertaskVersions)
-	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", services.GetUserSupertaskList)
+	muxProtected.HandleFunc("/api/protected/save-supertask", supertask.SaveSupertask)
+	muxProtected.HandleFunc("/api/protected/get-supertask", supertask.GetSupertask)
+	muxProtected.HandleFunc("/api/protected/get-supertask-versions", supertask.GetSupertaskVersions)
+	muxProtected.HandleFunc("/api/protected/get-user-supertask-list", supertask.GetUserSupertaskList)
 	// Supertask solution
-	muxProtected.HandleFunc("/api/protected/save-supertask-solution", services.SaveSupertaskSolution)
-	muxProtected.HandleFunc("/api/protected/get-supertask-solution", services.GetSupertaskSolution)
+	muxProtected.HandleFunc("/api/protected/save-supertask-solution", contest_participation.SaveSupertaskSolution)
+	muxProtected.HandleFunc("/api/protected/get-supertask-solution", supertask.GetSupertaskSolution)
 	// Supertask result
-	muxProtected.HandleFunc("/api/protected/save-supertask-result", services.SaveSupertaskResult)
-	muxProtected.HandleFunc("/api/protected/get-supertask-result", services.GetSupertaskResult)
-	muxProtected.HandleFunc("/api/protected/get-supertask-all-tasks-results", services.GetSupertaskAllTasksResults)
+	muxProtected.HandleFunc("/api/protected/save-supertask-result", contest_participation.SaveSupertaskResult)
+	muxProtected.HandleFunc("/api/protected/get-supertask-result", supertask.GetSupertaskResult)
+	muxProtected.HandleFunc("/api/protected/get-supertask-all-tasks-results", supertask.GetSupertaskAllTasksResults)
 	// Contest
-	muxProtected.HandleFunc("/api/protected/get-contest", services.GetContest)
-	muxProtected.HandleFunc("/api/protected/save-contest", services.SaveContest)
-	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", services.AddSupertaskToContest)
-	muxProtected.HandleFunc("/api/protected/get-contest-supertask-list", services.GetContestSupertaskList)
-	muxProtected.HandleFunc("/api/protected/get-user-contest-list", services.GetUserContestList)
-	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", services.RemoveSupertaskFromContest)
-	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", services.GetSupertaskInContestWithResults)
-	muxProtected.HandleFunc("/api/protected/get-contest-results", services.GetContestResults)
-	muxProtected.HandleFunc("/api/protected/get-contest-results-file", services.GetContestResultsFile)
+	muxProtected.HandleFunc("/api/protected/get-contest", contest.GetContest)
+	muxProtected.HandleFunc("/api/protected/save-contest", contest.SaveContest)
+	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", contest.AddSupertaskToContest)
+	muxProtected.HandleFunc("/api/protected/get-contest-supertask-list", contest_participation.GetContestSupertaskList)
+	muxProtected.HandleFunc("/api/protected/get-contest-participation-info", contest_participation.GetContestParticipationInfo)
+	muxProtected.HandleFunc("/api/protected/get-user-contest-list", contest.GetUserContestList)
+	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", contest.RemoveSupertaskFromContest)
+	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", contest_participation.GetSupertaskInContestWithResults)
+	muxProtected.HandleFunc("/api/protected/add-participation-time", contest_participation.AddParticipationTime)
+	muxProtected.HandleFunc("/api/protected/upload-add-participation-time-file", contest_participation.AddParticipationTimeFile)
+	muxProtected.HandleFunc("/api/protected/get-contest-results", contest.GetContestResults)
+	muxProtected.HandleFunc("/api/protected/get-contest-results-file", contest.GetContestResultsFile)
 	// User managment
-	muxProtected.HandleFunc("/api/protected/upload-create-user-list", services.CreateMultipleUsers)
-	muxProtected.HandleFunc("/api/protected/upload-manage-multiple-users-contest-rights", services.ManageMultipleUsersContestRights)
+	muxProtected.HandleFunc("/api/protected/upload-create-user-list", admin.CreateMultipleUsers)
+	muxProtected.HandleFunc("/api/protected/upload-manage-multiple-users-contest-rights", admin.ManageMultipleUsersContestRights)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
 

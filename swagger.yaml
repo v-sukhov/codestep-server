@@ -2,6 +2,92 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  AccessWithReason:
+    type: string
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeData:
+    properties:
+      rowError:
+        items:
+          $ref: '#/definitions/AddParticipationTimeRowError'
+        type: array
+        x-go-name: RowError
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeFileData:
+    properties:
+      rowError:
+        items:
+          $ref: '#/definitions/AddParticipationTimeRowError'
+        type: array
+        x-go-name: RowError
+      unknownLogin:
+        items:
+          type: string
+        type: array
+        x-go-name: UnknownLogin
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeFileResponse:
+    properties:
+      data:
+        $ref: '#/definitions/AddParticipationTimeFileData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeItem:
+    properties:
+      addedTimeSec:
+        format: int32
+        type: integer
+        x-go-name: AddedTimeSec
+      userId:
+        format: int32
+        type: integer
+        x-go-name: UserId
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      rows:
+        items:
+          $ref: '#/definitions/AddParticipationTimeItem'
+        type: array
+        x-go-name: Rows
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/AddParticipationTimeData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services/contest_participation
+  AddParticipationTimeRowError:
+    properties:
+      errorMessage:
+        type: string
+        x-go-name: ErrorMessage
+      rowNumber:
+        format: int64
+        type: integer
+        x-go-name: RowNumber
+    type: object
+    x-go-package: codestep/services/contest_participation
   AddSupertaskToContestData:
     properties:
       orderNumber:
@@ -9,7 +95,7 @@ definitions:
         type: integer
         x-go-name: OrderNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   AddSupertaskToContestRequest:
     properties:
       contestId:
@@ -25,7 +111,7 @@ definitions:
         type: integer
         x-go-name: SupertaskVersionNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   AddSupertaskToContestResponse:
     properties:
       data:
@@ -37,7 +123,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   Contest:
     properties:
       contestDesc:
@@ -85,6 +171,16 @@ definitions:
         x-go-name: VirtualStartEndTime
     type: object
     x-go-package: codestep/db
+  ContestParticipationInfoByUser:
+    properties:
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
+      userId:
+        format: int32
+        type: integer
+        x-go-name: UserId
+    type: object
+    x-go-package: codestep/services/contest_participation
   ContestResults:
     properties:
       maxPossibleResult:
@@ -179,8 +275,48 @@ definitions:
         format: int32
         type: integer
         x-go-name: UserRightsBitmask
+      virtualParticipation:
+        type: boolean
+        x-go-name: VirtualParticipation
     type: object
     x-go-package: codestep/db
+  GetContestParticipationInfoData:
+    properties:
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
+      userContestParticipationInfoByUserList:
+        items:
+          $ref: '#/definitions/ContestParticipationInfoByUser'
+        type: array
+        x-go-name: InfoByUserList
+    type: object
+    x-go-package: codestep/services/contest_participation
+  GetContestParticipationInfoRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      userIdList:
+        items:
+          format: int32
+          type: integer
+        type: array
+        x-go-name: UserIdList
+    type: object
+    x-go-package: codestep/services/contest_participation
+  GetContestParticipationInfoResponse:
+    properties:
+      data:
+        $ref: '#/definitions/GetContestParticipationInfoData'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services/contest_participation
   GetContestRequest:
     properties:
       contestId:
@@ -188,7 +324,7 @@ definitions:
         type: integer
         x-go-name: ContestId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetContestResponse:
     properties:
       data:
@@ -200,7 +336,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetContestResultsFileRequest:
     properties:
       contestId:
@@ -208,7 +344,7 @@ definitions:
         type: integer
         x-go-name: ContestId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetContestResultsRequest:
     properties:
       contestId:
@@ -216,7 +352,7 @@ definitions:
         type: integer
         x-go-name: ContestId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetContestResultsResponse:
     properties:
       data:
@@ -228,18 +364,20 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetContestSupertaskListData:
     properties:
+      accessWithReason:
+        $ref: '#/definitions/AccessWithReason'
       supertaskList:
         items:
           $ref: '#/definitions/SupertaskInContestInfo'
         type: array
         x-go-name: SupertasksList
-      userContestRights:
-        $ref: '#/definitions/UserContestRights'
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   GetContestSupertaskListRequest:
     properties:
       contestId:
@@ -247,7 +385,7 @@ definitions:
         type: integer
         x-go-name: ContestId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   GetContestSupertaskListResponse:
     properties:
       data:
@@ -259,7 +397,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   GetSupertaskAllTasksResultsData:
     properties:
       contestId:
@@ -276,7 +414,7 @@ definitions:
         type: array
         x-go-name: TasksResults
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskAllTasksResultsRequest:
     properties:
       contestId:
@@ -288,7 +426,7 @@ definitions:
         type: integer
         x-go-name: SupertaskId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskAllTasksResultsResponse:
     properties:
       data:
@@ -300,7 +438,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskData:
     properties:
       authorUserId:
@@ -342,7 +480,17 @@ definitions:
         type: integer
         x-go-name: VersionNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
+  GetSupertaskInContestWithResultsData:
+    properties:
+      accessWithReason:
+        $ref: '#/definitions/AccessWithReason'
+      supertaskInContestWithResults:
+        $ref: '#/definitions/SupertaskInContestWithResults'
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
+    type: object
+    x-go-package: codestep/services/contest_participation
   GetSupertaskInContestWithResultsRequest:
     properties:
       contestId:
@@ -354,11 +502,11 @@ definitions:
         type: integer
         x-go-name: SupertaskId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   GetSupertaskInContestWithResultsResponse:
     properties:
       data:
-        $ref: '#/definitions/SupertaskInContestWithResults'
+        $ref: '#/definitions/GetSupertaskInContestWithResultsData'
       message:
         type: string
         x-go-name: Message
@@ -366,7 +514,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   GetSupertaskRequest:
     properties:
       authorUserId:
@@ -382,7 +530,7 @@ definitions:
         type: integer
         x-go-name: VersionNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskResponse:
     properties:
       data:
@@ -394,7 +542,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskResultData:
     properties:
       contestId:
@@ -429,7 +577,7 @@ definitions:
         type: integer
         x-go-name: Tries
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskResultRequest:
     properties:
       contestId:
@@ -445,7 +593,7 @@ definitions:
         type: integer
         x-go-name: TaskNum
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskResultResponse:
     properties:
       data:
@@ -457,7 +605,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskSolutionData:
     properties:
       contestId:
@@ -498,7 +646,7 @@ definitions:
         type: integer
         x-go-name: TaskNum
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskSolutionRequest:
     properties:
       contestId:
@@ -522,7 +670,7 @@ definitions:
         type: integer
         x-go-name: TaskNum
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskSolutionResponse:
     properties:
       data:
@@ -534,7 +682,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskVersionsData:
     properties:
       supertaskVersionList:
@@ -543,7 +691,7 @@ definitions:
         type: array
         x-go-name: SupertaskVersionList
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskVersionsRequest:
     properties:
       supertaskId:
@@ -551,7 +699,7 @@ definitions:
         type: integer
         x-go-name: SupertaskId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetSupertaskVersionsResponse:
     properties:
       data:
@@ -563,7 +711,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetUserContestListData:
     properties:
       contestList:
@@ -572,10 +720,10 @@ definitions:
         type: array
         x-go-name: ContestList
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetUserContestListRequest:
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetUserContestListResponse:
     properties:
       data:
@@ -587,7 +735,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   GetUserSupertaskListData:
     properties:
       supertasks:
@@ -596,10 +744,10 @@ definitions:
         type: array
         x-go-name: Supertasks
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetUserSupertaskListRequest:
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   GetUserSupertaskListResponse:
     properties:
       data:
@@ -611,7 +759,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   LoginRequest:
     properties:
       login:
@@ -664,7 +812,7 @@ definitions:
         type: array
         x-go-name: RowError
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/admin
   ManageMultipleUsersContestRightsResponse:
     properties:
       data:
@@ -676,7 +824,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/admin
   ManageMultipleUsersContestRightsRowError:
     properties:
       errorMessage:
@@ -687,10 +835,10 @@ definitions:
         type: integer
         x-go-name: RowNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/admin
   RemoveSupertaskFromContestData:
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   RemoveSupertaskFromContestRequest:
     properties:
       contestId:
@@ -702,7 +850,7 @@ definitions:
         type: integer
         x-go-name: SupertaskId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   RemoveSupertaskFromContestResponse:
     properties:
       data:
@@ -714,7 +862,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   SaveContestData:
     properties:
       contestId:
@@ -722,7 +870,7 @@ definitions:
         type: integer
         x-go-name: ContestId
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   SaveContestRequest:
     properties:
       contestDesc:
@@ -767,7 +915,7 @@ definitions:
         type: string
         x-go-name: VirtualStartEndTime
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   SaveContestResponse:
     properties:
       data:
@@ -779,7 +927,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   SaveSupertaskData:
     properties:
       supertaskId:
@@ -791,7 +939,7 @@ definitions:
         type: integer
         x-go-name: VersionNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   SaveSupertaskRequest:
     properties:
       commitMessage:
@@ -832,7 +980,7 @@ definitions:
         type: integer
         x-go-name: TasksNum
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   SaveSupertaskResponse:
     properties:
       data:
@@ -844,10 +992,15 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/supertask
   SaveSupertaskResultData:
+    properties:
+      accessWithReason:
+        $ref: '#/definitions/AccessWithReason'
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SaveSupertaskResultRequest:
     properties:
       contestId:
@@ -878,7 +1031,7 @@ definitions:
         type: integer
         x-go-name: Tries
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SaveSupertaskResultResponse:
     properties:
       data:
@@ -890,10 +1043,15 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SaveSupertaskSolutionData:
+    properties:
+      accessWithReason:
+        $ref: '#/definitions/AccessWithReason'
+      userContestParticipationInfo:
+        $ref: '#/definitions/UserContestParticipationInfo'
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SaveSupertaskSolutionRequest:
     properties:
       contestId:
@@ -927,7 +1085,7 @@ definitions:
         type: integer
         x-go-name: TaskNum
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SaveSupertaskSolutionResponse:
     properties:
       data:
@@ -939,7 +1097,7 @@ definitions:
         type: boolean
         x-go-name: Success
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest_participation
   SupertaskIdAndVersionNumber:
     properties:
       supertaskId:
@@ -951,7 +1109,7 @@ definitions:
         type: integer
         x-go-name: VersionNumber
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/services/contest
   SupertaskInContestInfo:
     properties:
       orderNumber:
@@ -1130,6 +1288,65 @@ definitions:
         x-go-name: Tries
     type: object
     x-go-package: codestep/db
+  UserContestParticipationInfo:
+    properties:
+      addedTimeSec:
+        description: Добавленное время участнику в секундах (added_time_sec)
+        format: int32
+        type: integer
+        x-go-name: AddedTimeSec
+      contestDuration:
+        description: Длительность соревнования в минутах (contest_duration)
+        format: int32
+        type: integer
+        x-go-name: ContestDuration
+      contestStartTime:
+        description: Время старта соревнования (contest_start_time)
+        format: date-time
+        type: string
+        x-go-name: ContestStartTime
+      currentTime:
+        description: Текущее время
+        format: date-time
+        type: string
+        x-go-name: CurrentTime
+      limitVirtualStart:
+        description: Признак ограничения окна виртуального старта (limit_virtual_start)
+        type: boolean
+        x-go-name: LimitVirtualStart
+      noEndTime:
+        description: Признак бесконечного соревнования (no_end_time)
+        type: boolean
+        x-go-name: NoEndTime
+      status:
+        $ref: '#/definitions/UserContestParticipationStatus'
+      userContestRights:
+        $ref: '#/definitions/UserContestRights'
+      userFactStartTime:
+        description: Фактическое время старта пользователя (user_fact_start_time)
+        format: date-time
+        type: string
+        x-go-name: UserFactStartTime
+      userStartTime:
+        description: Время отсчётного старта пользователя (user_start_time)
+        format: date-time
+        type: string
+        x-go-name: UserStartTime
+      virtualParticipation:
+        description: Признак виртуального участия (virtual_participation)
+        type: boolean
+        x-go-name: VirtualParticipation
+      virtualStartEndTime:
+        description: Время окончания окна виртуального старта (virtual_start_end_time)
+        format: date-time
+        type: string
+        x-go-name: VirtualStartEndTime
+    type: object
+    x-go-package: codestep/db
+  UserContestParticipationStatus:
+    format: int64
+    type: integer
+    x-go-package: codestep/db
   UserContestRights:
     properties:
       isAdmin:
@@ -1145,7 +1362,7 @@ definitions:
         type: boolean
         x-go-name: IsParticipant
     type: object
-    x-go-package: codestep/services
+    x-go-package: codestep/db
   UserInfo:
     properties:
       isAdmin:
@@ -1194,6 +1411,21 @@ paths:
           $ref: '#/responses/loginResponse'
       tags:
       - login
+  /api/protected/add-participation-time:
+    post:
+      description: Операцию может выполнить только владелец или администратор контеста.
+      operationId: idOfAddParticipationTimeEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/AddParticipationTimeRequest'
+      responses:
+        "200":
+          $ref: '#/responses/addParticipationTimeResponse'
+      summary: Устанавливает добавленное время участникам соревнования по userId.
+      tags:
+      - add-participation-time
   /api/protected/add-supertask-to-contest:
     post:
       description: НЕ ИСПОЛЬЗУЕТСЯ!!! Добавить суперзадачу в контест
@@ -1222,6 +1454,23 @@ paths:
           $ref: '#/responses/getContestResponse'
       tags:
       - get-contest
+  /api/protected/get-contest-participation-info:
+    post:
+      description: |-
+        Без userIdList возвращает информацию по вызвавшему пользователю.
+        С userIdList возвращает информацию по указанным пользователям (только для владельца и администратора контеста).
+      operationId: idOfGetContestParticipationInfoEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetContestParticipationInfoRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getContestParticipationInfoResponse'
+      summary: Возвращает информацию об участии пользователя(ей) в контесте.
+      tags:
+      - get-contest-participation-info
   /api/protected/get-contest-results:
     post:
       description: Возвращает результаты участников контеста, отсортированные в порядке убывания баллов, решённых задач и возрастрания количества попыток
@@ -1458,6 +1707,19 @@ paths:
           $ref: '#/responses/saveSupertaskSolutionResponse'
       tags:
       - save-supertask-solution
+  /api/protected/upload-add-participation-time-file:
+    post:
+      description: "login\tadded_time_sec\n\nОперацию может выполнить только владелец или администратор контеста."
+      operationId: idOfAddParticipationTimeFileEndpoint
+      responses:
+        "200":
+          $ref: '#/responses/addParticipationTimeFileResponse'
+      summary: |-
+        Устанавливает добавленное время участникам соревнования через импорт файла.
+        Получает на вход multipart/form-data с полями contestId и participationTimeList.
+        Структура файла (разделитель - табуляции или пробелы):
+      tags:
+      - upload-add-participation-time-file
   /api/protected/upload-create-user-list:
     post:
       description: Позволяет загрузить файл со списком логинов для создания пользователей. Каждый логин - в отдельной строке. Логины состоят из символов a-z, 0-9, - и _
@@ -1493,10 +1755,21 @@ paths:
 produces:
 - application/json
 responses:
+  addParticipationTimeFileResponse:
+    description: Возвращает список несуществующих логинов и ошибки разбора строк файла.
+    schema:
+      $ref: '#/definitions/AddParticipationTimeFileResponse'
+  addParticipationTimeResponse:
+    description: Возвращает результат установки добавленного времени участникам соревнования.
+    schema:
+      $ref: '#/definitions/AddParticipationTimeResponse'
   addSupertaskToContestResponse:
     description: Add supertask to contest
     schema:
       $ref: '#/definitions/AddSupertaskToContestResponse'
+  getContestParticipationInfoResponse:
+    schema:
+      $ref: '#/definitions/GetContestParticipationInfoResponse'
   getContestResponse:
     description: Возвращает данные контеста
     schema:

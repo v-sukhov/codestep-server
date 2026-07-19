@@ -1,7 +1,7 @@
 package docs
 
 import (
-	services "codestep/services"
+	supertask "codestep/services/supertask"
 )
 
 // swagger:route POST /api/protected/get-supertask-solution get-supertask-solution idOfGetSupertaskSolutionEndpoint
@@ -12,12 +12,13 @@ import (
 // swagger:parameters idOfGetSupertaskSolutionEndpoint
 type getSupertaskSolutionRequestWrapper struct {
 	// in:body
-	Body services.GetSupertaskSolutionRequest
+	Body supertask.GetSupertaskSolutionRequest
 }
 
 // Get supertask solution success
 // swagger:response getSupertaskSolutionResponse
 type getSupertaskSolutionWrapper struct {
 	// in:body
-	Body services.GetSupertaskSolutionResponse
+	Body supertask.GetSupertaskSolutionResponse
 }
+
