@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 )
 
 type SetAddedTimeRow struct {
@@ -127,6 +128,7 @@ func SetAddedTimeByLogin(contestId int32, rows []SetAddedTimeByLoginRow) (unknow
 		if row.IsError {
 			continue
 		}
+		fmt.Println(row.Login, row.AddedTimeSec)
 		if _, err := stmt.Exec(rowNum, row.Login, row.AddedTimeSec); err != nil {
 			return nil, err
 		}

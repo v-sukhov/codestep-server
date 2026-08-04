@@ -206,6 +206,31 @@ definitions:
         x-go-name: UserResults
     type: object
     x-go-package: codestep/db
+  ContestUserListItem:
+    properties:
+      addedTimeSec:
+        format: int32
+        type: integer
+        x-go-name: AddedTimeSec
+      login:
+        type: string
+        x-go-name: Login
+      userContestRights:
+        $ref: '#/definitions/UserContestRights'
+      userFactStartTime:
+        format: date-time
+        type: string
+        x-go-name: UserFactStartTime
+      userId:
+        format: int32
+        type: integer
+        x-go-name: UserId
+      userStartTime:
+        format: date-time
+        type: string
+        x-go-name: UserStartTime
+    type: object
+    x-go-package: codestep/db
   ContestUserResult:
     properties:
       supertaskPassed:
@@ -253,6 +278,10 @@ definitions:
       contestDesc:
         type: string
         x-go-name: ContestDesc
+      contestDuration:
+        format: int32
+        type: integer
+        x-go-name: ContestDuration
       contestId:
         format: int32
         type: integer
@@ -271,6 +300,12 @@ definitions:
         format: int32
         type: integer
         x-go-name: GmtOffset
+      limitVirtualStart:
+        type: boolean
+        x-go-name: LimitVirtualStart
+      noEndTime:
+        type: boolean
+        x-go-name: NoEndTime
       userRightsBitmask:
         format: int32
         type: integer
@@ -278,6 +313,10 @@ definitions:
       virtualParticipation:
         type: boolean
         x-go-name: VirtualParticipation
+      virtualStartEndTime:
+        format: date-time
+        type: string
+        x-go-name: VirtualStartEndTime
     type: object
     x-go-package: codestep/db
   GetContestParticipationInfoData:
@@ -398,6 +437,67 @@ definitions:
         x-go-name: Success
     type: object
     x-go-package: codestep/services/contest_participation
+  GetContestUserListFilter:
+    properties:
+      loginSubstring:
+        type: string
+        x-go-name: LoginSubstring
+      roles:
+        items:
+          type: string
+        type: array
+        x-go-name: Roles
+    type: object
+    x-go-package: codestep/services/contest
+  GetContestUserListRequest:
+    properties:
+      contestId:
+        format: int32
+        type: integer
+        x-go-name: ContestId
+      filter:
+        $ref: '#/definitions/GetContestUserListFilter'
+      pageNumber:
+        format: int32
+        type: integer
+        x-go-name: PageNumber
+      pageSize:
+        format: int32
+        type: integer
+        x-go-name: PageSize
+      sortDirection:
+        type: string
+        x-go-name: SortDirection
+      sortField:
+        type: string
+        x-go-name: SortField
+    type: object
+    x-go-package: codestep/services/contest
+  GetContestUserListResponse:
+    properties:
+      data:
+        $ref: '#/definitions/GetContestUserListResult'
+      message:
+        type: string
+        x-go-name: Message
+      success:
+        type: boolean
+        x-go-name: Success
+    type: object
+    x-go-package: codestep/services/contest
+  GetContestUserListResult:
+    properties:
+      totalCount:
+        format: int32
+        type: integer
+        x-go-name: TotalCount
+      users:
+        items:
+          $ref: '#/definitions/ContestUserListItem'
+        type: array
+        x-go-name: Users
+    type: object
+    x-go-package: codestep/db
   GetSupertaskAllTasksResultsData:
     properties:
       contestId:
@@ -1513,6 +1613,24 @@ paths:
           $ref: '#/responses/getContestSupertaskListResponse'
       tags:
       - get-contest-supertask-list
+  /api/protected/get-contest-user-list:
+    post:
+      description: |-
+        sortField: login, role, userStartTime, userFactStartTime, addedTime.
+        sortDirection: asc или desc.
+        Доступно только владельцам и администраторам контеста.
+      operationId: idOfGetContestUserListEndpoint
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          $ref: '#/definitions/GetContestUserListRequest'
+      responses:
+        "200":
+          $ref: '#/responses/getContestUserListResponse'
+      summary: Возвращает список пользователей контеста с пагинацией, сортировкой и фильтрацией.
+      tags:
+      - get-contest-user-list
   /api/protected/get-supertask:
     post:
       description: |-
@@ -1784,6 +1902,9 @@ responses:
     description: Get contest supertask list sorted by order_number
     schema:
       $ref: '#/definitions/GetContestSupertaskListResponse'
+  getContestUserListResponse:
+    schema:
+      $ref: '#/definitions/GetContestUserListResponse'
   getSupertaskAllTasksResultsResponse:
     description: Get supertask all tasks results success
     schema:

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 type UserBasicInfo struct {
@@ -110,4 +112,28 @@ func GetUserRights(userId int32) (userRights UserRights, err error) {
 	}
 
 	return
+}
+
+func GetUserLoginsByIds(userIds []int32) (map[int32]string, error) {
+	logins := make(map[int32]string, len(userIds))
+	if len(userIds) == 0 {
+		return logins, nil
+	}
+
+	rows, err := db.Query(`SELECT user_id, login FROM t_user WHERE user_id = ANY($1)`, pq.Array(userIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userId int32
+		var login string
+		if err = rows.Scan(&userId, &login); err != nil {
+			return nil, err
+		}
+		logins[userId] = login
+	}
+
+	return logins, rows.Err()
 }

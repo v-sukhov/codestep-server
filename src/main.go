@@ -127,6 +127,7 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/get-supertask-all-tasks-results", supertask.GetSupertaskAllTasksResults)
 	// Contest
 	muxProtected.HandleFunc("/api/protected/get-contest", contest.GetContest)
+	muxProtected.HandleFunc("/api/protected/get-contest-user-list", contest.GetContestUserList)
 	muxProtected.HandleFunc("/api/protected/save-contest", contest.SaveContest)
 	muxProtected.HandleFunc("/api/protected/add-supertask-to-contest", contest.AddSupertaskToContest)
 	muxProtected.HandleFunc("/api/protected/get-contest-supertask-list", contest_participation.GetContestSupertaskList)
@@ -135,11 +136,13 @@ func main() {
 	muxProtected.HandleFunc("/api/protected/remove-supertask-from-contest", contest.RemoveSupertaskFromContest)
 	muxProtected.HandleFunc("/api/protected/get-supertask-in-contest-with-results", contest_participation.GetSupertaskInContestWithResults)
 	muxProtected.HandleFunc("/api/protected/add-participation-time", contest_participation.AddParticipationTime)
+	muxProtected.HandleFunc("/api/protected/edit-user-contest-rights", contest_participation.EditUserContestRights)
 	muxProtected.HandleFunc("/api/protected/upload-add-participation-time-file", contest_participation.AddParticipationTimeFile)
 	muxProtected.HandleFunc("/api/protected/get-contest-results", contest.GetContestResults)
 	muxProtected.HandleFunc("/api/protected/get-contest-results-file", contest.GetContestResultsFile)
 	// User managment
 	muxProtected.HandleFunc("/api/protected/upload-create-user-list", admin.CreateMultipleUsers)
+	muxProtected.HandleFunc("/api/protected/create-contest-users", admin.CreateContestUsers)
 	muxProtected.HandleFunc("/api/protected/upload-manage-multiple-users-contest-rights", admin.ManageMultipleUsersContestRights)
 
 	mux.Handle("/api/protected/", security.ProtectHandler(muxProtected))
