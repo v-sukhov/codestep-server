@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	dbDir          = "db"
+	liquibaseDir   = "liquibase"
 	changeLogFile  = "dbchangelog.xml"
 	changesetsDir  = "changesets"
 	propertiesFile = "liquibase.properties"
 )
 
 /*
-Update выполняет liquibase update в каталоге db относительно текущей рабочей директории.
-Параметры подключения к БД берутся из server.conf и записываются в db/liquibase.properties.
+Update выполняет liquibase update в каталоге liquibase относительно текущей рабочей директории.
+Параметры подключения к БД берутся из server.conf и записываются в liquibase/liquibase.properties.
 jdbcDriverFile задаёт путь к JDBC-драйверу относительно текущей рабочей директории сервера.
 */
 func Update(host, port, dbname, user, password, jdbcDriverFile string) error {
@@ -36,11 +36,11 @@ func Update(host, port, dbname, user, password, jdbcDriverFile string) error {
 	}
 
 	if err := writeProperties(host, port, dbname, user, password, driverClasspath); err != nil {
-		return fmt.Errorf("failed to write %s: %w", filepath.Join(dbDir, propertiesFile), err)
+		return fmt.Errorf("failed to write %s: %w", filepath.Join(liquibaseDir, propertiesFile), err)
 	}
 
 	cmd := exec.Command("liquibase", "update")
-	cmd.Dir = dbDir
+	cmd.Dir = liquibaseDir
 
 	var output bytes.Buffer
 	cmd.Stdout = &output
@@ -68,12 +68,12 @@ func driverClasspathForLiquibase(jdbcDriverFile string) (string, error) {
 		return "", fmt.Errorf("invalid jdbc_driver_file path: %w", err)
 	}
 
-	absDbDir, err := filepath.Abs(dbDir)
+	absLiquibaseDir, err := filepath.Abs(liquibaseDir)
 	if err != nil {
 		return "", fmt.Errorf("invalid liquibase directory path: %w", err)
 	}
 
-	relPath, err := filepath.Rel(absDbDir, absDriverPath)
+	relPath, err := filepath.Rel(absLiquibaseDir, absDriverPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve jdbc_driver_file path for liquibase: %w", err)
 	}
@@ -82,12 +82,12 @@ func driverClasspathForLiquibase(jdbcDriverFile string) (string, error) {
 }
 
 func validateFiles(jdbcDriverFile string) error {
-	changeLogPath := filepath.Join(dbDir, changeLogFile)
+	changeLogPath := filepath.Join(liquibaseDir, changeLogFile)
 	if _, err := os.Stat(changeLogPath); err != nil {
 		return fmt.Errorf("liquibase changelog file not found: %s", changeLogPath)
 	}
 
-	changesetsPath := filepath.Join(dbDir, changesetsDir)
+	changesetsPath := filepath.Join(liquibaseDir, changesetsDir)
 	entries, err := os.ReadDir(changesetsPath)
 	if err != nil {
 		return fmt.Errorf("liquibase changesets directory not found: %s", changesetsPath)
@@ -116,6 +116,6 @@ driver: org.postgresql.Driver
 classpath: %s
 `, changeLogFile, host, port, dbname, user, password, driverClasspath)
 
-	propertiesPath := filepath.Join(dbDir, propertiesFile)
+	propertiesPath := filepath.Join(liquibaseDir, propertiesFile)
 	return os.WriteFile(propertiesPath, []byte(content), 0644)
 }

@@ -11,7 +11,7 @@ database_password =
 # liquibase_update = yes to run "liquibase update" command
 liquibase_update = 
 # relative path from current dir to jdbc driver file to run liquibase update
-jdbc_driver_file = 
+jdbc_driver_file = ./liquibase/postgresql-42.2.14.jar
 
 # password encryption secrete word
 encryption_salt_word = 
