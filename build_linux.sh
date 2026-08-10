@@ -1,3 +1,4 @@
+mkdir -p build
 cd ./src
 go build -o ../build/codestep-server
 cd ..
