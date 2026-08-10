@@ -1,5 +1,7 @@
 Liquibase migrations for codestep database.
 
+Connection settings are stored in `liquibase.properties` (independent from `server.conf`).
+
 Run manually from this directory:
 
 	liquibase update
@@ -7,4 +9,5 @@ Run manually from this directory:
 Or enable automatic update on server start in server.conf:
 
 	liquibase_update = yes
-	jdbc_driver_file = ./liquibase/postgresql-42.2.14.jar
+
+Before first run, copy `liquibase.properties.template` to `liquibase.properties` and set url, username and password.

@@ -18,25 +18,11 @@ const (
 
 /*
 Update выполняет liquibase update в каталоге liquibase относительно текущей рабочей директории.
-Параметры подключения к БД берутся из server.conf и записываются в liquibase/liquibase.properties.
-jdbcDriverFile задаёт путь к JDBC-драйверу относительно текущей рабочей директории сервера.
+Параметры подключения к БД берутся из liquibase/liquibase.properties.
 */
-func Update(host, port, dbname, user, password, jdbcDriverFile string) error {
-	if jdbcDriverFile == "" {
-		return fmt.Errorf("jdbc_driver_file is not configured")
-	}
-
-	driverClasspath, err := driverClasspathForLiquibase(jdbcDriverFile)
-	if err != nil {
+func Update() error {
+	if err := validateFiles(); err != nil {
 		return err
-	}
-
-	if err := validateFiles(jdbcDriverFile); err != nil {
-		return err
-	}
-
-	if err := writeProperties(host, port, dbname, user, password, driverClasspath); err != nil {
-		return fmt.Errorf("failed to write %s: %w", filepath.Join(liquibaseDir, propertiesFile), err)
 	}
 
 	cmd := exec.Command("liquibase", "update")
@@ -62,26 +48,7 @@ func Update(host, port, dbname, user, password, jdbcDriverFile string) error {
 	return nil
 }
 
-func driverClasspathForLiquibase(jdbcDriverFile string) (string, error) {
-	absDriverPath, err := filepath.Abs(jdbcDriverFile)
-	if err != nil {
-		return "", fmt.Errorf("invalid jdbc_driver_file path: %w", err)
-	}
-
-	absLiquibaseDir, err := filepath.Abs(liquibaseDir)
-	if err != nil {
-		return "", fmt.Errorf("invalid liquibase directory path: %w", err)
-	}
-
-	relPath, err := filepath.Rel(absLiquibaseDir, absDriverPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to resolve jdbc_driver_file path for liquibase: %w", err)
-	}
-
-	return filepath.ToSlash(relPath), nil
-}
-
-func validateFiles(jdbcDriverFile string) error {
+func validateFiles() error {
 	changeLogPath := filepath.Join(liquibaseDir, changeLogFile)
 	if _, err := os.Stat(changeLogPath); err != nil {
 		return fmt.Errorf("liquibase changelog file not found: %s", changeLogPath)
@@ -96,8 +63,9 @@ func validateFiles(jdbcDriverFile string) error {
 		return fmt.Errorf("liquibase changesets directory is empty: %s", changesetsPath)
 	}
 
-	if _, err := os.Stat(jdbcDriverFile); err != nil {
-		return fmt.Errorf("jdbc driver file not found: %s", jdbcDriverFile)
+	propertiesPath := filepath.Join(liquibaseDir, propertiesFile)
+	if _, err := os.Stat(propertiesPath); err != nil {
+		return fmt.Errorf("liquibase properties file not found: %s", propertiesPath)
 	}
 
 	if _, err := exec.LookPath("liquibase"); err != nil {
@@ -105,17 +73,4 @@ func validateFiles(jdbcDriverFile string) error {
 	}
 
 	return nil
-}
-
-func writeProperties(host, port, dbname, user, password, driverClasspath string) error {
-	content := fmt.Sprintf(`changeLogFile: %s
-url: jdbc:postgresql://%s:%s/%s
-username: %s
-password: %s
-driver: org.postgresql.Driver
-classpath: %s
-`, changeLogFile, host, port, dbname, user, password, driverClasspath)
-
-	propertiesPath := filepath.Join(liquibaseDir, propertiesFile)
-	return os.WriteFile(propertiesPath, []byte(content), 0644)
 }

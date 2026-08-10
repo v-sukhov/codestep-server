@@ -79,8 +79,7 @@ func main() {
 	}
 
 	if p.GetString("liquibase_update", "no") == "yes" {
-		jdbcDriverFile := p.MustGetString("jdbc_driver_file")
-		if err := liquibase.Update(databaseHost, databasePort, databaseDbname, databaseUser, databasePassword, jdbcDriverFile); err != nil {
+		if err := liquibase.Update(); err != nil {
 			log.Fatalf("Liquibase update failed: %v", err)
 		}
 	}

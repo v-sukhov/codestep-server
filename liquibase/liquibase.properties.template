@@ -1,6 +1,6 @@
-changeLogFile:  
-url:
-username: 
-password: 
-driver: 
-classpath:  postgresql-42.2.14.jar
+changeLogFile: dbchangelog.xml
+url: jdbc:postgresql://localhost:5432/codestep_db
+username: liquibase_user
+password: liquibase_password
+driver: org.postgresql.Driver
+classpath: postgresql-42.2.14.jar
